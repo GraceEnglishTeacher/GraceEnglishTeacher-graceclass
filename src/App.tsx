@@ -13,14 +13,15 @@ import {
   Volume2
 } from 'lucide-react';
 import { worksheetData } from './data';
-import { QuizQuestion } from './types';
+import { QuizQuestion, VocabularyItem } from './types';
 
 type Tab = 'vocabulary' | 'listening' | 'grammar' | 'reading';
-type SubTab = 'learn' | 'quiz';
+type SubTab = 'learn' | 'quiz' | 'review';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('learn');
+  const [missedWords, setMissedWords] = useState<VocabularyItem[]>([]);
   
   const getVoice = useCallback((speaker?: 'G' | 'B' | 'A') => {
     const voices = window.speechSynthesis.getVoices();
@@ -127,6 +128,14 @@ export default function App() {
       const correctAnswer = String(question.answer).toLowerCase().trim();
       isCorrect = userAnswer === correctAnswer;
     }
+
+    if (quizId === 'vocabulary' && !isCorrect) {
+      const missedWord = worksheetData.vocabulary[state.currentQuestionIndex];
+      setMissedWords(prev => {
+        if (prev.find(w => w.word === missedWord.word)) return prev;
+        return [...prev, missedWord];
+      });
+    }
     
     setQuizStates(prev => ({
       ...prev,
@@ -158,7 +167,7 @@ export default function App() {
           }
         }));
       }
-    }, 1500);
+    }, 800);
   };
 
   const selectTab = (tab: Tab | null) => {
@@ -265,16 +274,18 @@ export default function App() {
               
               {activeTab === 'vocabulary' && (
                 <>
-                  <TabSwitcher active={activeSubTab} onChange={setActiveSubTab} />
+                  <TabSwitcher active={activeSubTab} onChange={setActiveSubTab} showReview={missedWords.length > 0} />
                   {activeSubTab === 'learn' ? (
                     <VocabularySection onSpeak={speak} />
-                  ) : (
+                  ) : activeSubTab === 'quiz' ? (
                     <QuizSection 
                       questions={worksheetData.vocabularyQuiz}
                       state={quizStates.vocabulary} 
                       handleAnswer={(ans: any) => handleAnswer('vocabulary', worksheetData.vocabularyQuiz, ans)} 
                       onReset={() => resetQuiz('vocabulary', worksheetData.vocabularyQuiz.length)}
                     />
+                  ) : (
+                    <ReviewSection words={missedWords} />
                   )}
                 </>
               )}
@@ -322,6 +333,141 @@ export default function App() {
   );
 }
 
+function ReviewSection({ words }: { words: VocabularyItem[] }) {
+  const [inputs, setInputs] = useState<Record<string, { english: string[], korean: string[] }>>({});
+
+  const handleInputChange = (word: string, type: 'english' | 'korean', index: number, value: string) => {
+    setInputs(prev => {
+      const wordData = prev[word] || { english: ['', '', ''], korean: ['', '', ''] };
+      const newList = [...wordData[type]];
+      newList[index] = value;
+      return {
+        ...prev,
+        [word]: {
+          ...wordData,
+          [type]: newList
+        }
+      };
+    });
+  };
+
+  if (words.length === 0) {
+    return (
+      <div className="text-center py-20 bg-[#F8F8F5] rounded-3xl border-2 border-dashed border-[#E5E5E0]">
+        <CheckCircle2 size={48} className="mx-auto text-emerald-500 mb-4 opacity-20" />
+        <p className="text-xl font-bold text-[#8A8A80]">틀린 단어가 없습니다! 완벽해요!</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-12">
+      <div className="bg-orange-50 border border-orange-100 p-6 rounded-2xl flex items-start gap-4">
+        <Info className="text-orange-500 shrink-0 mt-1" size={20} />
+        <div>
+          <h4 className="font-bold text-orange-800">오답 복습하기</h4>
+          <p className="text-sm text-orange-700 leading-relaxed">
+            퀴즈에서 틀린 단어들입니다. 각 단어마다 영어 스펠링과 한글 뜻을 <span className="font-black text-orange-900 underline">3번씩</span> 써보며 익혀보세요.
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-16">
+        {words.map((item, idx) => {
+          const wordInputs = inputs[item.word] || { english: ['', '', ''], korean: ['', '', ''] };
+          
+          return (
+            <motion.div 
+              key={item.word}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className="relative"
+            >
+              <div className="flex items-center gap-4 mb-6">
+                <span className="w-8 h-8 rounded-full bg-[#1A1A1A] text-white flex items-center justify-center font-black text-xs">
+                  {idx + 1}
+                </span>
+                <h3 className="text-2xl font-bold text-[#1A1A1A]">{item.word}</h3>
+                <span className="text-lg font-bold text-[#8A8A80]">— {item.meaning}</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* English Practice */}
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#8A8A80] mb-2 block">English Spelling (3 times)</span>
+                  {[0, 1, 2].map(i => {
+                    const isCorrect = wordInputs.english[i].trim().toLowerCase() === item.word.toLowerCase();
+                    return (
+                      <div key={i} className="relative group">
+                        <input 
+                          type="text"
+                          value={wordInputs.english[i]}
+                          onChange={(e) => handleInputChange(item.word, 'english', i, e.target.value)}
+                          placeholder={`${i + 1}. ${item.word}`}
+                          className={`w-full p-4 rounded-xl border-2 font-bold focus:outline-none transition-all ${
+                            isCorrect 
+                              ? 'bg-emerald-50 border-emerald-500 text-emerald-700' 
+                              : wordInputs.english[i] ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-white border-[#F0F0EB] focus:border-[#1A1A1A]'
+                          }`}
+                        />
+                        {isCorrect && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500">
+                            <CheckCircle2 size={18} />
+                          </div>
+                        )}
+                        {!isCorrect && wordInputs.english[i] && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-rose-500">
+                            <XCircle size={18} />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Korean Practice */}
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#8A8A80] mb-2 block">Korean Meaning (3 times)</span>
+                  {[0, 1, 2].map(i => {
+                    const isCorrect = wordInputs.korean[i].trim() === item.meaning;
+                    return (
+                      <div key={i} className="relative group">
+                        <input 
+                          type="text"
+                          value={wordInputs.korean[i]}
+                          onChange={(e) => handleInputChange(item.word, 'korean', i, e.target.value)}
+                          placeholder={`${i + 1}. ${item.meaning}`}
+                          className={`w-full p-4 rounded-xl border-2 font-bold focus:outline-none transition-all ${
+                            isCorrect 
+                              ? 'bg-emerald-50 border-emerald-500 text-emerald-700' 
+                              : wordInputs.korean[i] ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-white border-[#F0F0EB] focus:border-[#1A1A1A]'
+                          }`}
+                        />
+                         {isCorrect && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500">
+                            <CheckCircle2 size={18} />
+                          </div>
+                        )}
+                        {!isCorrect && wordInputs.korean[i] && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-rose-500">
+                            <XCircle size={18} />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="h-0.5 w-full bg-[#F0F0EB] mt-12 mb-4" />
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function MenuCard({ title, subtitle, description, icon, onClick, color }: any) {
   const colors = {
     blue: 'hover:border-blue-200 hover:bg-blue-50/30',
@@ -352,7 +498,7 @@ function MenuCard({ title, subtitle, description, icon, onClick, color }: any) {
   );
 }
 
-function TabSwitcher({ active, onChange }: { active: SubTab, onChange: (t: SubTab) => void }) {
+function TabSwitcher({ active, onChange, showReview = false }: { active: SubTab, onChange: (t: SubTab) => void, showReview?: boolean }) {
   return (
     <div className="flex bg-[#F8F8F5] p-1.5 rounded-2xl mb-8 w-fit mx-auto border border-[#E5E5E0]">
       <button 
@@ -367,6 +513,14 @@ function TabSwitcher({ active, onChange }: { active: SubTab, onChange: (t: SubTa
       >
         퀴즈풀기
       </button>
+      {showReview && (
+        <button 
+          onClick={() => onChange('review')}
+          className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${active === 'review' ? 'bg-orange-600 text-white shadow-md' : 'text-[#8A8A80] hover:text-orange-600'}`}
+        >
+          오답 복습
+        </button>
+      )}
     </div>
   );
 }
