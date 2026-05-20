@@ -4,8 +4,6 @@ import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
-  typescript
-  base: '.GraceEnglishTeacher-g:
   const env = loadEnv(mode, '.', '');
   return {
     plugins: [react(), tailwindcss()],
