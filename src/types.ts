@@ -18,6 +18,36 @@ export interface QuizQuestion {
   type: 'multiple-choice' | 'short-answer';
 }
 
+export interface AnalysisVocabulary {
+  word: string;
+  pos: string; // e.g. '명', '동', '형', '부', '전', '연결어'
+  meaning: string;
+}
+
+export interface AnalysisGrammar {
+  phrase: string;
+  explanation: string;
+}
+
+export interface AnalysisSentence {
+  english: string;
+  korean: string;
+  vocabulary: AnalysisVocabulary[];
+  grammar: AnalysisGrammar[];
+  highlights?: string[]; // words to highlight like verbs
+  underlines?: string[];  // words to underline like keywords
+  connectors?: string[];  // connectors to circle/badge like 'so', 'but'
+}
+
+export interface ReadingTopic {
+  id: string;
+  title: string;
+  english: string;
+  korean: string;
+  exercises: QuizQuestion[];
+  analysis?: AnalysisSentence[];
+}
+
 export interface WorksheetData {
   title: string;
   unit: string;
@@ -44,10 +74,7 @@ export interface WorksheetData {
       exercises: QuizQuestion[];
     }[];
   };
-  reading: {
-    english: string;
-    korean: string;
-  };
+  reading: ReadingTopic[];
   grammar: (GrammarPoint & { exercises: QuizQuestion[] })[];
   vocabularyQuiz: QuizQuestion[];
 }

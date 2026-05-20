@@ -117,7 +117,13 @@ export default function App() {
   });
 
   const handleAnswer = (quizId: string, questions: QuizQuestion[], answer: string | number) => {
-    const state = quizStates[quizId];
+    const state = quizStates[quizId] || {
+      currentQuestionIndex: 0,
+      score: 0,
+      isFinished: false,
+      userAnswers: Array(questions.length).fill(null),
+      feedback: null
+    };
     const question = questions[state.currentQuestionIndex];
     let isCorrect = false;
 
@@ -137,36 +143,54 @@ export default function App() {
       });
     }
     
-    setQuizStates(prev => ({
-      ...prev,
-      [quizId]: {
-        ...prev[quizId],
-        userAnswers: prev[quizId].userAnswers.map((a, i) => i === state.currentQuestionIndex ? answer : a),
-        feedback: isCorrect,
-        score: isCorrect ? prev[quizId].score + 1 : prev[quizId].score
-      }
-    }));
+    setQuizStates(prev => {
+      const currentState = prev[quizId] || {
+        currentQuestionIndex: 0,
+        score: 0,
+        isFinished: false,
+        userAnswers: Array(questions.length).fill(null),
+        feedback: null
+      };
+      return {
+        ...prev,
+        [quizId]: {
+          ...currentState,
+          userAnswers: currentState.userAnswers.map((a, i) => i === state.currentQuestionIndex ? answer : a),
+          feedback: isCorrect,
+          score: isCorrect ? currentState.score + 1 : currentState.score
+        }
+      };
+    });
 
     setTimeout(() => {
-      if (state.currentQuestionIndex < questions.length - 1) {
-        setQuizStates(prev => ({
-          ...prev,
-          [quizId]: {
-            ...prev[quizId],
-            currentQuestionIndex: prev[quizId].currentQuestionIndex + 1,
-            feedback: null
-          }
-        }));
-      } else {
-        setQuizStates(prev => ({
-          ...prev,
-          [quizId]: {
-            ...prev[quizId],
-            isFinished: true,
-            feedback: null
-          }
-        }));
-      }
+      setQuizStates(prev => {
+        const currentState = prev[quizId] || {
+          currentQuestionIndex: 0,
+          score: 0,
+          isFinished: false,
+          userAnswers: Array(questions.length).fill(null),
+          feedback: null
+        };
+        if (currentState.currentQuestionIndex < questions.length - 1) {
+          return {
+            ...prev,
+            [quizId]: {
+              ...currentState,
+              currentQuestionIndex: currentState.currentQuestionIndex + 1,
+              feedback: null
+            }
+          };
+        } else {
+          return {
+            ...prev,
+            [quizId]: {
+              ...currentState,
+              isFinished: true,
+              feedback: null
+            }
+          };
+        }
+      });
     }, 800);
   };
 
@@ -274,7 +298,7 @@ export default function App() {
               
               {activeTab === 'vocabulary' && (
                 <>
-                  <TabSwitcher active={activeSubTab} onChange={setActiveSubTab} showReview={missedWords.length > 0} />
+                  <TabSwitcher active={activeSubTab} onChange={setActiveSubTab} showReview={missedWords.length > 0} hideLearn={activeSubTab === 'quiz'} />
                   {activeSubTab === 'learn' ? (
                     <VocabularySection onSpeak={speak} />
                   ) : activeSubTab === 'quiz' ? (
@@ -318,11 +342,11 @@ export default function App() {
               )}
 
               {activeTab === 'reading' && (
-                <TextSection 
-                  title="Main Reading" 
-                  english={worksheetData.reading.english} 
-                  korean={worksheetData.reading.korean} 
-                  onSpeak={speakDialog}
+                <ReadingSection 
+                  onSpeak={speak}
+                  quizStates={quizStates}
+                  handleAnswer={handleAnswer}
+                  resetQuiz={resetQuiz}
                 />
               )}
             </motion.div>
@@ -468,6 +492,421 @@ function ReviewSection({ words }: { words: VocabularyItem[] }) {
   );
 }
 
+function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text: string) => void }) {
+  const [activeSentenceIdx, setActiveSentenceIdx] = useState<number | null>(0);
+
+  if (!story.analysis) {
+    return (
+      <div className="p-8 text-center bg-[#F8F8F5] border border-[#E5E5E0] rounded-2xl text-[#8A8A80] font-bold">
+        어법 분석 데이터가 존재하지 않습니다.
+      </div>
+    );
+  }
+
+  // A helper to highlight / underline specific words inside the english sentence for display
+  const highlightSentence = (sentence: any) => {
+    let text = sentence.english;
+    const highlights = sentence.highlights || [];
+    const underlines = sentence.underlines || [];
+    const connectors = sentence.connectors || [];
+
+    // Combine all and sort by length descending to avoid partial matches on nested words
+    const tokens = [
+      ...highlights.map(h => ({ val: h, type: 'highlight' })),
+      ...underlines.map(u => ({ val: u, type: 'underline' })),
+      ...connectors.map(c => ({ val: c, type: 'connector' }))
+    ].sort((a, b) => b.val.length - a.val.length);
+
+    if (tokens.length === 0) return <span>{text}</span>;
+
+    // Create a regex that matches any of the targets
+    const escapedTerms = tokens.map(t => t.val.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+    const regex = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
+
+    const parts = text.split(regex);
+    return (
+      <>
+        {parts.map((part: string, idx: number) => {
+          const matchToken = tokens.find(t => t.val.toLowerCase() === part.toLowerCase());
+          if (matchToken) {
+            if (matchToken.type === 'highlight') {
+              return (
+                <span 
+                  key={idx} 
+                  className="bg-sky-100/90 text-sky-900 border-b-2 border-sky-400 font-extrabold px-1.5 py-0.5 mx-0.5 rounded transition-all"
+                  title="서술어 동사 / 수동태 / 진행형"
+                >
+                  {part}
+                </span>
+              );
+            }
+            if (matchToken.type === 'underline') {
+              return (
+                <span 
+                  key={idx} 
+                  className="underline decoration-rose-500 decoration-2 underline-offset-4 font-black text-neutral-800 mx-0.5"
+                  title="핵심 어휘"
+                >
+                  {part}
+                </span>
+              );
+            }
+            if (matchToken.type === 'connector') {
+              return (
+                <span 
+                  key={idx} 
+                  className="inline-block px-2.5 py-0.5 mx-1 border border-rose-400 bg-rose-50 text-rose-600 rounded-full font-black text-xs"
+                  title="접속사 / 연결어"
+                >
+                  {part}
+                </span>
+              );
+            }
+          }
+          return <span key={idx}>{part}</span>;
+        })}
+      </>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-amber-50/50 border border-amber-200/60 p-5 rounded-2xl flex items-start gap-4">
+        <Info className="text-[#5A5A40] shrink-0 mt-0.5" size={20} />
+        <div>
+          <h4 className="font-extrabold text-[#1A1A1A] text-sm">구문 및 어법 상세 분석 모드</h4>
+          <p className="text-xs text-[#6B6B60] leading-relaxed mt-1">
+            본문의 문장을 선택하여 각 문장의 <strong>문법 구조, 수동태, to부정사 용법 및 핵심 어휘</strong> 설명을 상세하게 공부할 수 있습니다.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left sentences list */}
+        <div className="lg:col-span-7 space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+          {story.analysis.map((sentence: any, idx: number) => {
+            const isActive = activeSentenceIdx === idx;
+            return (
+              <motion.div
+                key={idx}
+                onClick={() => setActiveSentenceIdx(idx)}
+                whileHover={{ x: 2 }}
+                className={`p-4 rounded-2xl cursor-pointer border text-left transition-all ${
+                  isActive
+                    ? 'bg-white border-[#5A5A40] shadow-md ring-1 ring-[#5A5A40]'
+                    : 'bg-[#F8F8F5] border-[#E5E5E0] hover:border-[#8A8A80] hover:bg-white'
+                }`}
+              >
+                <div className="flex gap-2 items-start">
+                  <span className={`w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] shrink-0 mt-1 ${
+                    isActive ? 'bg-[#5A5A40] text-white' : 'bg-[#E5E5E0] text-[#5A5A40]'
+                  }`}>
+                    {idx + 1}
+                  </span>
+                  <div className="space-y-2 w-full">
+                    <p className={`text-base md:text-lg font-bold leading-relaxed tracking-tight ${
+                      isActive ? 'text-[#1A1A1A]' : 'text-neutral-500'
+                    }`}>
+                      {isActive ? highlightSentence(sentence) : sentence.english}
+                    </p>
+                    <p className={`text-xs md:text-sm font-medium ${isActive ? 'text-[#8A8A80]' : 'text-[#A0A090]'}`}>
+                      {sentence.korean}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Right detailed explanation panel */}
+        <div className="lg:col-span-5 h-fit lg:sticky lg:top-8">
+          <AnimatePresence mode="wait">
+            {activeSentenceIdx !== null ? (
+              <motion.div
+                key={activeSentenceIdx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-[#F8F8F5] p-6 rounded-3xl border border-[#E5E5E0] space-y-6 shadow-sm"
+              >
+                {/* Panel Header */}
+                <div className="flex justify-between items-center pb-4 border-b border-[#E5E5E0]">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-[#5A5A40] text-white text-xs font-bold flex items-center justify-center">
+                      {activeSentenceIdx + 1}
+                    </span>
+                    <h5 className="font-extrabold text-[#1A1A1A] text-sm">구문 분석 상세 카드</h5>
+                  </div>
+                  <button 
+                    onClick={() => onSpeak(story.analysis[activeSentenceIdx].english)}
+                    className="p-1.5 rounded-lg bg-white border border-[#E5E5E0] text-[#5A5A40] hover:bg-[#F0F0EB] transition-colors"
+                    title="문장 듣기"
+                  >
+                    <Volume2 size={14} />
+                  </button>
+                </div>
+
+                {/* Sentence review */}
+                <div className="space-y-2">
+                  <p className="text-sm font-bold text-[#8A8A80] uppercase tracking-widest text-[10px]">Sentence</p>
+                  <p className="text-base md:text-lg font-extrabold text-[#1A1A1A] leading-relaxed">
+                    {highlightSentence(story.analysis[activeSentenceIdx])}
+                  </p>
+                  <p className="text-sm font-bold text-[#5A5A40] leading-relaxed bg-white/60 p-2.5 rounded-xl border border-[#E5E5E0]/40">
+                    {story.analysis[activeSentenceIdx].korean}
+                  </p>
+                </div>
+
+                {/* Grammar explanations */}
+                {story.analysis[activeSentenceIdx].grammar.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold text-[#8A8A80] uppercase tracking-widest text-[10px]">구문 및 어법 분석</p>
+                    <div className="space-y-3">
+                      {story.analysis[activeSentenceIdx].grammar.map((g: any, gIdx: number) => (
+                        <div key={gIdx} className="bg-amber-50/40 p-3.5 rounded-xl border border-amber-100 space-y-1">
+                          <span className="inline-block px-2 py-0.5 text-xs font-bold rounded-md bg-[#5A5A40] text-white mb-2">
+                            {g.phrase}
+                          </span>
+                          <p className="text-xs font-bold leading-relaxed text-[#5A5A40] whitespace-pre-line">
+                            {g.explanation}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Vocabulary breakdowns */}
+                {story.analysis[activeSentenceIdx].vocabulary.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold text-[#8A8A80] uppercase tracking-widest text-[10px]">어휘 및 단어 풀이</p>
+                    <div className="grid grid-cols-1 gap-2 bg-white p-4 rounded-xl border border-[#E5E5E0]">
+                      {story.analysis[activeSentenceIdx].vocabulary.map((v: any, vIdx: number) => (
+                        <div key={vIdx} className="flex justify-between items-center text-xs py-1.5 border-b border-gray-100 last:border-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-extrabold text-neutral-800">{v.word}</span>
+                            <span className="text-[10px] scale-90 px-1 py-0.2 rounded bg-neutral-100 border text-neutral-500 font-extrabold">
+                              {v.pos}
+                            </span>
+                          </div>
+                          <span className="font-bold text-[#5A5A40]">{v.meaning}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {story.analysis[activeSentenceIdx].grammar.length === 0 && story.analysis[activeSentenceIdx].vocabulary.length === 0 && (
+                  <div className="text-center py-6 text-xs font-bold text-gray-400">
+                    추가적인 구문/어휘 분석이 필요 없는 간단한 구절입니다.
+                  </div>
+                )}
+              </motion.div>
+            ) : (
+              <div className="bg-[#F8F8F5] p-8 text-center border border-[#E5E5E0] rounded-3xl text-sm font-bold text-[#8A8A80] h-64 flex flex-col justify-center items-center">
+                <BookOpen size={32} className="opacity-20 mb-3 text-[#5A5A40]" />
+                왼쪽 목록에서 분석하고 싶은 문장을 선택해보세요.
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: {
+  onSpeak: (text: string) => void,
+  quizStates: any,
+  handleAnswer: (quizId: string, questions: QuizQuestion[], answer: string | number) => void,
+  resetQuiz: (quizId: string, length: number) => void
+}) {
+  const [activeStoryIdx, setActiveStoryIdx] = useState(0);
+  const [showKorean, setShowKorean] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [subTab, setSubTab] = useState<'learn' | 'quiz'>('learn');
+
+  const story = worksheetData.reading[activeStoryIdx];
+  const quizId = `reading_${story.id}`;
+
+  const currentState = quizStates[quizId] || {
+    currentQuestionIndex: 0,
+    score: 0,
+    isFinished: false,
+    userAnswers: Array(story.exercises.length).fill(null),
+    feedback: null
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Story Select Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {worksheetData.reading.map((item, idx) => (
+          <button
+            key={item.id}
+            onClick={() => {
+              setActiveStoryIdx(idx);
+              setSubTab('learn');
+              setShowAnalysis(false); // Reset analysis tab on story change
+            }}
+            className={`p-5 rounded-2xl text-left border-2 transition-all flex flex-col justify-between group h-24 ${
+              activeStoryIdx === idx
+                ? 'border-rose-500 bg-rose-50/20 shadow-md'
+                : 'border-[#E5E5E0] bg-white hover:border-rose-200'
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <span className={`w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] ${
+                activeStoryIdx === idx ? 'bg-rose-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
+              }`}>
+                {idx + 1}
+              </span>
+              <span className="font-extrabold text-base tracking-tight text-[#1A1A1A]">
+                {item.title.split(' ')[0]}
+              </span>
+            </div>
+            <p className="text-xs font-bold text-[#8A8A80] mt-1 group-hover:text-rose-500 transition-colors">
+              {item.title.substring(item.title.indexOf(' ') + 1)}
+            </p>
+          </button>
+        ))}
+      </div>
+
+      {/* Sub Tab Switcher */}
+      <div className="flex bg-[#F8F8F5] p-1.5 rounded-2xl w-fit mx-auto border border-[#E5E5E0]">
+        {subTab !== 'quiz' && (
+          <button 
+            onClick={() => setSubTab('learn')}
+            className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${
+              subTab === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'
+            }`}
+          >
+            학습하기
+          </button>
+        )}
+        <button 
+          onClick={() => setSubTab('quiz')}
+          className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${
+            subTab === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'
+          }`}
+        >
+          퀴즈풀기
+        </button>
+      </div>
+
+      {subTab === 'learn' ? (
+        <div className="space-y-10">
+          <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center bg-[#F8F8F5] p-3 rounded-2xl border border-[#E5E5E0]">
+            <span className="text-sm font-bold px-4 text-[#5A5A40]">{story.title} 본문 학습</span>
+            <div className="flex flex-wrap items-center gap-3">
+              <button 
+                onClick={() => onSpeak(story.english)}
+                className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-[#E5E5E0] text-xs sm:text-sm font-bold text-[#5A5A40] hover:bg-[#F0F0EB] transition-colors shadow-sm"
+                title="본문 전체 듣기"
+              >
+                <Volume2 size={16} />
+                전체 듣기
+              </button>
+              
+              <div className="w-px h-6 bg-[#E5E5E0]" />
+
+              <button
+                onClick={() => {
+                  setShowAnalysis(!showAnalysis);
+                  if (!showAnalysis) setShowKorean(false); // coordinate translated view off by default
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold transition-all shadow-sm ${
+                  showAnalysis 
+                    ? 'bg-[#5A5A40] text-white border-[#5A5A40]' 
+                    : 'bg-white border-[#E5E5E0] text-[#5A5A40] hover:bg-[#F0F0EB]'
+                }`}
+              >
+                <BookOpen size={16} />
+                구문 분석 보기
+              </button>
+
+              {!showAnalysis && (
+                <>
+                  <div className="w-px h-6 bg-[#E5E5E0]" />
+                  <span className="text-xs font-bold text-[#8A8A80]">번역 보기</span>
+                  <button 
+                    onClick={() => setShowKorean(!showKorean)}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
+                      showKorean ? 'bg-[#5A5A40]' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                      showKorean ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {showAnalysis ? (
+            <ReadingGrammarAnalysis story={story} onSpeak={onSpeak} />
+          ) : (
+            <div className="grid grid-cols-1 gap-12">
+              <div className="bg-[#F8F8F5] p-8 rounded-3xl relative border border-[#E5E5E0]">
+                <div className="absolute -top-4 left-8 bg-[#5A5A40] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
+                  English
+                </div>
+                <div className="space-y-1 md:space-y-2">
+                  {story.english.split('\n\n').filter(p => p.trim() !== '').map((para, pIdx) => (
+                    <p 
+                      key={pIdx} 
+                      className="text-xl md:text-2xl leading-relaxed md:leading-loose font-bold text-neutral-600 tracking-tight font-sans text-justify"
+                      style={{ textIndent: '1.5em' }}
+                    >
+                      {para}
+                    </p>
+                  ))}
+                </div>
+              </div>
+
+              {showKorean && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white p-8 rounded-3xl border border-[#E5E5E0] relative"
+                >
+                  <div className="absolute -top-4 left-8 bg-[#E5E5E0] text-[#5A5A40] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
+                    Korean
+                  </div>
+                  <p className="text-lg leading-[1.8] text-[#5A5A50] whitespace-pre-line">
+                    {story.korean}
+                  </p>
+                </motion.div>
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="bg-[#F8F8F5] border border-[#E5E5E0] p-6 rounded-2xl flex items-start gap-4">
+            <Info className="text-[#5A5A40] shrink-0 mt-1" size={20} />
+            <div>
+              <h4 className="font-bold text-[#1A1A1A]">이해력 확인 퀴즈 (5문항)</h4>
+              <p className="text-sm text-[#6B6B60] leading-relaxed">
+                본문의 내용을 바탕으로 질문에 답해보세요. 객관식과 단답식 형태의 문항으로 독해 실력을 확인할 수 있습니다.
+              </p>
+            </div>
+          </div>
+          
+          <QuizSection 
+            questions={story.exercises}
+            state={currentState}
+            handleAnswer={(ans: any) => handleAnswer(quizId, story.exercises, ans)}
+            onReset={() => resetQuiz(quizId, story.exercises.length)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MenuCard({ title, subtitle, description, icon, onClick, color }: any) {
   const colors = {
     blue: 'hover:border-blue-200 hover:bg-blue-50/30',
@@ -498,15 +937,17 @@ function MenuCard({ title, subtitle, description, icon, onClick, color }: any) {
   );
 }
 
-function TabSwitcher({ active, onChange, showReview = false }: { active: SubTab, onChange: (t: SubTab) => void, showReview?: boolean }) {
+function TabSwitcher({ active, onChange, showReview = false, hideLearn = false }: { active: SubTab, onChange: (t: SubTab) => void, showReview?: boolean, hideLearn?: boolean }) {
   return (
     <div className="flex bg-[#F8F8F5] p-1.5 rounded-2xl mb-8 w-fit mx-auto border border-[#E5E5E0]">
-      <button 
-        onClick={() => onChange('learn')}
-        className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${active === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
-      >
-        학습하기
-      </button>
+      {!hideLearn && (
+        <button 
+          onClick={() => onChange('learn')}
+          className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${active === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
+        >
+          학습하기
+        </button>
+      )}
       <button 
         onClick={() => onChange('quiz')}
         className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${active === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
@@ -939,7 +1380,7 @@ function GrammarSection() {
             <h4 className="text-lg font-bold">{item.title}</h4>
           </div>
           <div className="p-8">
-            <p className="text-[#5A5A50] mb-8 leading-relaxed bg-[#F8F8F5] p-5 rounded-2xl text-base italic border-l-4 border-emerald-500/20">
+            <p className="text-[#5A5A50] mb-8 leading-relaxed bg-[#F8F8F5] p-5 rounded-2xl text-base italic border-l-4 border-emerald-500/20 whitespace-pre-line">
               {item.explanation}
             </p>
             <div className="space-y-4">

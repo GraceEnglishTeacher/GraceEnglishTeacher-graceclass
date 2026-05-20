@@ -120,14 +120,533 @@ export const worksheetData: WorksheetData = {
       }
     ]
   },
-  reading: {
-    english: "Inventions often come from solving small problems in our daily lives. For example, Bette Graham invented whiteout because she made many mistakes when typing. She noticed that painters covered their mistakes with more paint, and she thought she could do the same. This simple idea became a great necessity for many people. Today, even in the present-day digital world, we sometimes still need such creative solutions.",
-    korean: "발명품들은 종종 우리 일상생활의 작은 문제들을 해결하는 것에서 나옵니다. 예를 들어, 베티 그레이엄은 타자를 칠 때 실수를 많이 해서 수정액을 발명했습니다. 그녀는 화가들이 그림 위에 물감을 더 칠해 실수를 덮는 것을 알아차렸고, 자신도 똑같이 할 수 있을 것이라 생각했습니다. 이 간단한 아이디어는 많은 사람들에게 큰 필수품이 되었습니다. 오늘날, 현대의 디지털 세상에서도 우리는 때때로 그런 창의적인 해결책이 여전히 필요합니다."
-  },
+  reading: [
+    {
+      id: "rd1",
+      title: "Bicycle (자전거)",
+      english: "Mt. Tambora, a volcano in Indonesia, exploded in 1815. The explosion created a huge cloud of ash, so crops failed around the world. As a result, people didn’t have enough food to eat. Surprisingly, this made traveling difficult. Why? In those days, people rode horses, but many horses were killed for food.\n\nPeople needed a new way to travel, and Karl von Drais invented the first bicycle in Germany in 1817. Drais’s bicycle had two wooden wheels but no pedals. How did it move without pedals? Well, riders simply pushed the bicycle forward with their feet. The present-day bicycle is the result of many inventors’ work in the 19th century.",
+      korean: "1815년에 인도네시아의 화산인 탐보라 산이 폭발했습니다. 그 폭발은 거대한 재 구름을 만들어 냈고, 그래서 전 세계적으로 농작물이 흉작이었습니다. 결과적으로, 사람들은 먹을 충분한 음식을 갖지 못했습니다. 놀랍게도, 이것은 이동하는 것을 어렵게 만들었습니다. 왜일까요? 그 당시에 사람들은 말을 탔지만, 많은 말들이 식용으로 죽임을 당했습니다. 사람들은 이동할 새로운 방법이 필요했고, Karl von Drais가 1817년에 독일에서 최초의 자전거를 발명했습니다. Drais의 자전거는 두 개의 나무 바퀴가 있었지만 페달은 없었습니다. 페달 없이 그것은 어떻게 움직였을까요? 글쎄요, 타는 사람들이 단순히 그들의 발로 자전거를 앞으로 밀었습니다. 오늘날의 자전거는 19세기 많은 발명가들의 노력의 결과입니다.",
+      analysis: [
+        {
+          english: "Mt. Tambora, a volcano in Indonesia, exploded in 1815.",
+          korean: "1815년에 인도네시아의 화산인 탐보라 산이 폭발했습니다.",
+          highlights: ["exploded"],
+          underlines: ["volcano"],
+          vocabulary: [
+            { word: "volcano", pos: "명", meaning: "화산" },
+            { word: "exploded", pos: "동", meaning: "폭발하다 (explode의 과거형)" }
+          ],
+          grammar: [
+            { phrase: "a volcano in Indonesia", explanation: "주어인 Mt. Tambora와 동격 관계(=)를 나타내는 삽입구입니다." }
+          ]
+        },
+        {
+          english: "The explosion created a huge cloud of ash, so crops failed around the world.",
+          korean: "그 폭발은 거대한 재 구름을 만들어 냈고, 그래서 전 세계적으로 농작물이 흉작이었습니다.",
+          highlights: ["created", "failed"],
+          underlines: ["explosion", "huge", "ash", "crops"],
+          connectors: ["so"],
+          vocabulary: [
+            { word: "explosion", pos: "명", meaning: "폭발" },
+            { word: "huge", pos: "형", meaning: "거대한" },
+            { word: "ash", pos: "명", meaning: "재, 잿더미" },
+            { word: "crops", pos: "명", meaning: "(농)작물" },
+            { word: "failed", pos: "동", meaning: "실패하다 (수확이 실패하다, 흉작이다)" }
+          ],
+          grammar: [
+            { phrase: "so", explanation: "결과를 이끄는 인과관계의 등위접속사 (그래서 ~하다)입니다." }
+          ]
+        },
+        {
+          english: "As a result, people didn’t have enough food to eat.",
+          korean: "결과적으로, 사람들은 먹을 충분한 음식을 갖지 못했습니다.",
+          highlights: ["didn’t have"],
+          underlines: ["As a result", "enough"],
+          vocabulary: [
+            { word: "As a result", pos: "연결어", meaning: "결과적으로, 그 결과" },
+            { word: "enough", pos: "형", meaning: "충분한" }
+          ],
+          grammar: [
+            { phrase: "to eat", explanation: "to부정사의 형용사적 용법으로, 앞의 명사구 'enough food'를 수식합니다. (먹을 음식)" }
+          ]
+        },
+        {
+          english: "Surprisingly, this made traveling difficult.",
+          korean: "놀랍게도, 이것은 이동하는 것을 어렵게 만들었습니다.",
+          highlights: ["made"],
+          underlines: ["Surprisingly"],
+          vocabulary: [
+            { word: "Surprisingly", pos: "부", meaning: "놀랍게도" }
+          ],
+          grammar: [
+            { phrase: "made traveling difficult", explanation: "「make + 목적어(traveling, 동명사) + 형용사 목적보어(difficult)」 구문입니다. 목적보어 자리에 부사(difficultly)를 쓰지 않도록 주의합니다." }
+          ]
+        },
+        {
+          english: "Why?",
+          korean: "왜일까요?",
+          vocabulary: [],
+          grammar: []
+        },
+        {
+          english: "In those days, people rode horses, but many horses were killed for food.",
+          korean: "그 당시에 사람들은 말을 탔지만, 많은 말들이 식용으로 죽임을 당했습니다.",
+          highlights: ["rode", "were killed"],
+          underlines: ["In those days"],
+          connectors: ["but"],
+          vocabulary: [
+            { word: "In those days", pos: "구", meaning: "그 때, 그 당시에" },
+            { word: "rode", pos: "동", meaning: "타다 (ride의 과거형)" }
+          ],
+          grammar: [
+            { phrase: "were killed", explanation: "수동태(be동사 과거형 were + 과거분사 killed) 구문으로, 말들이 '식용으로 죽임을 당했다'는 의미를 나타냅니다." }
+          ]
+        },
+        {
+          english: "People needed a new way to travel, and Karl von Drais invented the first bicycle in Germany in 1817.",
+          korean: "사람들은 이동할 새로운 방법이 필요했고, Karl von Drais가 1817년에 독일에서 최초의 자전거를 발명했습니다.",
+          highlights: ["needed", "invented"],
+          connectors: ["and"],
+          vocabulary: [
+            { word: "invented", pos: "동", meaning: "발명하다" }
+          ],
+          grammar: [
+            { phrase: "to travel", explanation: "to부정사의 형용사적 용법으로, 앞의 명사 a new way를 수식합니다. (이동할 방법)" },
+            { phrase: "in Germany / in 1817", explanation: "나라 이름이나 구체적인 연도 앞에는 전치사 in을 사용합니다." }
+          ]
+        },
+        {
+          english: "Drais’s bicycle had two wooden wheels but no pedals.",
+          korean: "Drais의 자전거는 두 개의 나무 바퀴가 있었지만 페달은 없었습니다.",
+          highlights: ["had"],
+          underlines: ["wooden", "wheels", "pedals"],
+          connectors: ["but"],
+          vocabulary: [
+            { word: "wooden", pos: "형", meaning: "나무로 된, 목재의" },
+            { word: "wheels", pos: "명", meaning: "바퀴" },
+            { word: "pedals", pos: "명", meaning: "페달" }
+          ],
+          grammar: []
+        },
+        {
+          english: "How did it move without pedals?",
+          korean: "페달 없이 그것은 어떻게 움직였을까요?",
+          highlights: ["move"],
+          underlines: ["without"],
+          vocabulary: [
+            { word: "without", pos: "전", meaning: "~ 없이" }
+          ],
+          grammar: [
+            { phrase: "it", explanation: "Karl von Drais가 만든 최초의 자전거(Drais’s bicycle)를 가리킵니다." }
+          ]
+        },
+        {
+          english: "Well, riders simply pushed the bicycle forward with their feet.",
+          korean: "글쎄요, 타는 사람들이 단순히 그들의 발로 자전거를 앞으로 밀었습니다.",
+          highlights: ["pushed"],
+          underlines: ["forward"],
+          vocabulary: [
+            { word: "pushed", pos: "동", meaning: "밀었다 (push의 과거형)" },
+            { word: "forward", pos: "부", meaning: "앞으로" }
+          ],
+          grammar: [
+            { phrase: "with their feet", explanation: "수단이나 도구를 나타내는 전치사 with(그들의 발을 사용하여)이며, 주어 riders가 복수이므로 foot의 복수형인 feet가 쓰였습니다." }
+          ]
+        },
+        {
+          english: "The present-day bicycle is the result of many inventors’ work in the 19th century.",
+          korean: "오늘날의 자전거는 19세기 많은 발명가들의 노력의 결과입니다.",
+          highlights: ["is"],
+          underlines: ["present-day", "result", "inventors", "century"],
+          vocabulary: [
+            { word: "present-day", pos: "형", meaning: "오늘날의, 현대의" },
+            { word: "result", pos: "명", meaning: "결과" },
+            { word: "century", pos: "명", meaning: "세기, 100년" }
+          ],
+          grammar: [
+            { phrase: "inventors’ work", explanation: "복수명사의 소유격 표현입니다. s로 끝나는 복수명사의 소유격은 뒤에 어포스트로피(’)만 붙입니다. (발명가들의 노력)" }
+          ]
+        }
+      ],
+      exercises: [
+        {
+          id: "rd1_q1",
+          type: "multiple-choice",
+          question: "When did Mt. Tambora, a volcano in Indonesia, explode?",
+          options: ["In 1815", "In 1817", "In 1956", "In 1991"],
+          answer: 0
+        },
+        {
+          id: "rd1_q2",
+          type: "short-answer",
+          question: "The explosion created a huge cloud of ____, so crops failed around the world. (어울리는 영단어 한 단어 입력)",
+          answer: "ash"
+        },
+        {
+          id: "rd1_q3",
+          type: "multiple-choice",
+          question: "Why did traveling become difficult after the explosion?",
+          options: [
+            "Because roads were damaged and blocked by snow.",
+            "Because many horses were killed for food.",
+            "Because people had to walk everywhere.",
+            "Because bicycles were too heavy to ride."
+          ],
+          answer: 1
+        },
+        {
+          id: "rd1_q4",
+          type: "short-answer",
+          question: "Who invented the first bicycle in Germany in 1817? (발명가 이름 입력)",
+          answer: "Karl von Drais"
+        },
+        {
+          id: "rd1_q5",
+          type: "multiple-choice",
+          question: "How did Karl von Drais's bicycle move without pedals?",
+          options: [
+            "It was pulled by horses.",
+            "Riders simply pushed the bicycle forward with their feet.",
+            "It moved automatically using steam power.",
+            "Riders used hand cranks to turn the wheels."
+          ],
+          answer: 1
+        }
+      ]
+    },
+    {
+      id: "rd2",
+      title: "Whiteout (수정액)",
+      english: "Whiteout was invented by Bette Graham. In 1956, Graham was working at a bank in Texas, USA. At that time, people had to retype the whole page when they made even a small mistake. Graham was a bad typist, so she needed a solution. One day, Graham saw some window painters. When they made a mistake, they corrected it by simply painting over it. The next day, she made her own white paint and used it to correct her typing mistakes. Surprisingly, nobody noticed! Soon, everybody at the bank began using it.",
+      korean: "수정액(화이트아웃)은 Bette Graham에 의해 발명되었습니다. 1956년에 Graham은 미국 텍사스의 한 은행에서 일하고 있었습니다. 그 당시에 사람들은 아주 작은 실수만 해도 페이지 전체를 다시 타자 쳐야 했습니다. Graham은 서툰 타이피스트였고, 그래서 그녀는 해결책이 필요했습니다. 어느 날, Graham은 몇몇 창문 페인트공들을 보았습니다. 그들이 실수를 했을 때, 그들은 단순히 그 위에 페인트를 칠함으로써 그것을 바로잡았습니다. 다음 날, 그녀는 자신만의 하얀 페인트를 만들었고 그것을 자신의 타자 실수를 바로잡기 위해 사용했습니다. 놀랍게도, 아무도 알아차리지 못했습니다! 곧, 은행의 모든 사람들이 그것을 사용하기 시작했습니다.",
+      analysis: [
+        {
+          english: "Whiteout was invented by Bette Graham.",
+          korean: "수정액(화이트아웃)은 Bette Graham에 의해 발명되었습니다.",
+          highlights: ["was invented"],
+          vocabulary: [
+            { word: "invented", pos: "동", meaning: "발명하다 (invent의 과거형/과거분사)" }
+          ],
+          grammar: [
+            { phrase: "was invented by", explanation: "수동태(be동사 과거형 was + 과거분사 invented + by 행위자) 구문으로, 주어인 Whiteout이 Bette Graham에 의해 '발명되었다'를 뜻합니다." }
+          ]
+        },
+        {
+          english: "In 1956, Graham was working at a bank in Texas, USA.",
+          korean: "1956년에 Graham은 미국 텍사스의 한 은행에서 일하고 있었습니다.",
+          highlights: ["was working"],
+          vocabulary: [],
+          grammar: [
+            { phrase: "was working", explanation: "과거진행형(was + 동사원형-ing)으로, 과거 특정 시점에 일어나는 진행 동작(~하는 중이었다)을 표현합니다." }
+          ]
+        },
+        {
+          english: "At that time, people had to retype the whole page when they made even a small mistake.",
+          korean: "그 당시에 사람들은 아주 작은 실수만 해도 페이지 전체를 다시 타자 쳐야 했습니다.",
+          highlights: ["had to retype", "made"],
+          underlines: ["At that time", "whole"],
+          connectors: ["when"],
+          vocabulary: [
+            { word: "At that time", pos: "구", meaning: "그 때, 당시에" },
+            { word: "retype", pos: "동", meaning: "다시 입력하다, 다시 타자리치다" },
+            { word: "whole", pos: "형", meaning: "전체의" }
+          ],
+          grammar: [
+            { phrase: "had to retype", explanation: "의무를 지닌 have to(~해야 한다)의 과거형인 had to에 동사원형 retype이 결합하여 '~해야 했다'를 나타냅니다." },
+            { phrase: "when they made even a small mistake", explanation: "시간의 부사절을 이끄는 접속사 when(~할 때)입니다. make a mistake는 '실수하다'라는 표현이며, even(~조차도)이 결합되었습니다." }
+          ]
+        },
+        {
+          english: "Graham was a bad typist, so she needed a solution.",
+          korean: "Graham은 서툰 타이피스트였고, 그래서 그녀는 해결책이 필요했습니다.",
+          highlights: ["was", "needed"],
+          underlines: ["typist", "solution"],
+          connectors: ["so"],
+          vocabulary: [
+            { word: "typist", pos: "명", meaning: "타이피스트, 타자수" },
+            { word: "solution", pos: "명", meaning: "해결책, 해법" }
+          ],
+          grammar: [
+            { phrase: "so", explanation: "앞 문장과 뒤 문장을 원인과 결과로 연결하는 등위접속사 (그래서)입니다." }
+          ]
+        },
+        {
+          english: "One day, Graham saw some window painters.",
+          korean: "어느 날, Graham은 몇몇 창문 페인트공들을 보았습니다.",
+          highlights: ["saw"],
+          underlines: ["One day", "painters"],
+          vocabulary: [
+            { word: "One day", pos: "구", meaning: "어느 날" },
+            { word: "painters", pos: "명", meaning: "페인트공(칠장이), 도장공" }
+          ],
+          grammar: [
+            { phrase: "saw", explanation: "지각동사 see의 과거형으로, 창문 페인트공이라는 인물을 보게 된 시점을 지칭합니다." }
+          ]
+        },
+        {
+          english: "When they made a mistake, they corrected it by simply painting over it.",
+          korean: "그들이 실수를 했을 때, 그들은 단순히 그 위에 페인트를 칠함으로써 그것을 바로잡았습니다.",
+          highlights: ["made", "corrected", "painting"],
+          connectors: ["When"],
+          vocabulary: [
+            { word: "corrected", pos: "동", meaning: "바로잡다, 정정하다" }
+          ],
+          grammar: [
+            { phrase: "by simply painting over it", explanation: "by + -ing(동명사) 구문은 '~함으로써'라는 방법/수단을 나타냅니다. paint over는 '위에 덧칠하다'를 뜻하며, 대명사 it은 앞에서 저지른 실수(a mistake)를 가리킵니다." }
+          ]
+        },
+        {
+          english: "The next day, she made her own white paint and used it to correct her typing mistakes.",
+          korean: "다음 날, 그녀는 자신만의 하얀 페인트를 만들었고 그것을 자신의 타자 실수를 바로잡기 위해 사용했습니다.",
+          highlights: ["made", "used", "correct"],
+          underlines: ["The next day"],
+          connectors: ["and"],
+          vocabulary: [
+            { word: "The next day", pos: "구", meaning: "다음 날" }
+          ],
+          grammar: [
+            { phrase: "her own", explanation: "소유격을 더욱 강조하여 '그녀 자신의'라는 뜻을 전합니다." },
+            { phrase: "it", explanation: "앞부분에 직접 제조한 흰색 페인트(her own white paint)를 지칭하는 대명사입니다." },
+            { phrase: "to correct", explanation: "to부정사의 부사적 용법 중 '목적'(~하기 위해서)을 나타냅니다. 그녀의 타자 오류를 바로잡기 위해 사용했다는 사실을 뒷받침합니다." }
+          ]
+        },
+        {
+          english: "Surprisingly, nobody noticed!",
+          korean: "놀랍게도, 아무도 알아차리지 못했습니다!",
+          highlights: ["noticed"],
+          underlines: ["Surprisingly", "nobody"],
+          vocabulary: [
+            { word: "Surprisingly", pos: "부", meaning: "놀랍게도" },
+            { word: "nobody", pos: "대명사", meaning: "아무도 ~않다" },
+            { word: "noticed", pos: "동", meaning: "알아차리다 (notice의 과거형)" }
+          ],
+          grammar: []
+        },
+        {
+          english: "Soon, everybody at the bank began using it.",
+          korean: "곧, 은행의 모든 사람들이 그것을 사용하기 시작했습니다.",
+          highlights: ["began", "using"],
+          vocabulary: [],
+          grammar: [
+            { phrase: "began using", explanation: "begin은 목적어로 동명사(-ing)와 to부정사 둘 다 취할 수 있는 동사입니다. 따라서 began using은 began to use로 바꾸어 쓸 수도 있습니다." }
+          ]
+        }
+      ],
+      exercises: [
+        {
+          id: "rd2_q1",
+          type: "short-answer",
+          question: "Who is the inventor of Whiteout? (발명가 이름 입력)",
+          answer: "Bette Graham"
+        },
+        {
+          id: "rd2_q2",
+          type: "multiple-choice",
+          question: "Where was Bette Graham working in 1956?",
+          options: ["At a school in England", "At a bank in Texas, USA", "At a paint shop", "At a computer lab"],
+          answer: 1
+        },
+        {
+          id: "rd2_q3",
+          type: "multiple-choice",
+          question: "What was the main problem when typists made a small mistake?",
+          options: [
+            "They had to buy a new typewriter.",
+            "They had to pay a fine to the bank.",
+            "They had to retype the whole page.",
+            "They had to erase it with sand."
+          ],
+          answer: 2
+        },
+        {
+          id: "rd2_q4",
+          type: "short-answer",
+          question: "Bette Graham got her idea from seeing some window _______. (어울리는 영단어 한 단어 입력)",
+          answer: "painters"
+        },
+        {
+          id: "rd2_q5",
+          type: "multiple-choice",
+          question: "What happened when she first used her own white paint?",
+          options: [
+            "Her boss got angry at her immediately.",
+            "Surprisingly, nobody noticed!",
+            "The paint damaged the paper.",
+            "Everybody laughed at her secret recipe."
+          ],
+          answer: 1
+        }
+      ]
+    },
+    {
+      id: "rd3",
+      title: "Webcam (웹캠)",
+      english: "The first webcam was invented to watch a coffee pot. In 1991, Dr. Quentin Stafford-Fraser and Dr. Paul Jardetzky were working at a computer lab in England. To work better, they needed lots of coffee. However, there was only one coffee machine in the building. So, they had to make many disappointing trips to the empty coffee pot.\n\nAs a solution, the two researchers set up a camera in front of the coffee machine. The camera took pictures of the coffee pot three times a minute. With special software, all the researchers in the building could see the pictures on their local network. No more disappointing trips!",
+      korean: "최초의 웹캠은 커피 포트를 지켜보기 위해 발명되었습니다. 1991년에 Quentin Stafford-Fraser 박사와 Paul Jardetzky 박사는 영국의 한 컴퓨터 연구소에서 일하고 있었습니다. 일을 더 잘하기 위해 그들은 많은 커피가 필요했습니다. 하지만 건물에는 단 한 대의 커피 머신만 있었습니다. 그래서 그들은 비어 있는 커피 포트로 실망스러운 걸음을 여러 번 해야만 했습니다. 해결책으로, 두 연구원은 커피 머신 앞에 카메라를 설치했습니다. 카메라는 1분에 세 번씩 커피 포트 사진을 찍었습니다. 전용 소프트웨어를 통해 건물 내 모든 연구원들이 로컬 네트워크에서 사진을 볼 수 있었습니다. 더 이상 실망스러운 걸음을 하지 않아도 되었습니다!",
+      analysis: [
+        {
+          english: "The first webcam was invented to watch a coffee pot.",
+          korean: "최초의 웹캠은 커피 포트를 지켜보기 위해 발명되었습니다.",
+          highlights: ["was invented"],
+          underlines: ["pot"],
+          vocabulary: [
+            { word: "pot", pos: "명", meaning: "항아리, 단지, 포트" }
+          ],
+          grammar: [
+            { phrase: "was invented", explanation: "수동태(be동사 과거형 was + 과거분사 invented)로 '발명되었다'를 의미합니다." },
+            { phrase: "to watch", explanation: "to부정사의 부사적 용법 중 '목적'(~하기 위해서)을 뜻하며, '지켜보기 위해서'로 해석됩니다." }
+          ]
+        },
+        {
+          english: "In 1991, Dr. Quentin Stafford-Fraser and Dr. Paul Jardetzky were working at a computer lab in England.",
+          korean: "1991년에 Quentin Stafford-Fraser 박사와 Paul Jardetzky 박사는 영국의 한 컴퓨터 연구소에서 일하고 있었습니다.",
+          highlights: ["were working"],
+          underlines: ["lab"],
+          vocabulary: [
+            { word: "lab", pos: "명", meaning: "실험실, 연구실 (laboratory의 축약형)" }
+          ],
+          grammar: [
+            { phrase: "were working", explanation: "과거진행형(주어가 여러 명이므로 were + -ing)으로, 과거 한 시점에 연구원들이 일하고 있었음을 나타냅니다." }
+          ]
+        },
+        {
+          english: "To work better, they needed lots of coffee.",
+          korean: "일을 더 잘하기 위해 그들은 많은 커피가 필요했습니다.",
+          highlights: ["needed"],
+          underlines: ["lots of"],
+          vocabulary: [],
+          grammar: [
+            { phrase: "To work better", explanation: "to부정사의 부사적 용법 중 '목적'(~하기 위해)으로 쓰여, '일을 더 유능하게 정진해서 더 잘하기 위해'라는 의미를 더해줍니다." },
+            { phrase: "lots of", explanation: "많은 양을 일컫는 수식어로, 가산/불가산 명사에 모두 사용 가능합니다. 여기서는 불가산 명사인 coffee를 수식하며 'a lot of' 또는 'much'와 동의어입니다." }
+          ]
+        },
+        {
+          english: "However, there was only one coffee machine in the building.",
+          korean: "하지만 건물에는 단 한 대의 커피 머신만 있었습니다.",
+          highlights: ["was"],
+          underlines: ["However"],
+          vocabulary: [
+            { word: "However", pos: "연결어", meaning: "하지만, 그러나 (역접의 접속부사)" }
+          ],
+          grammar: [
+            { phrase: "there was only one", explanation: "「there was + 단수 명사」 구문으로 '~이 있었다'라는 존재를 나타내며, only가 붙어 오직 하나 있었음을 상세히 강조합니다." }
+          ]
+        },
+        {
+          english: "So, they had to make many disappointing trips to the empty coffee pot.",
+          korean: "그래서 그들은 비어 있는 커피 포트로 실망스러운 걸음을 여러 번 해야만 했습니다.",
+          highlights: ["had to make"],
+          underlines: ["disappointing", "empty"],
+          connectors: ["So"],
+          vocabulary: [
+            { word: "disappointing", pos: "형", meaning: "실망스러운" },
+            { word: "empty", pos: "형", meaning: "비어 있는, 빈" }
+          ],
+          grammar: [
+            { phrase: "had to make", explanation: "have to(~해야 한다)의 과거형인 had to에 동사를 결합하여 '강제로 ~하러 가야만 했다'는 불가피성을 강조합니다." },
+            { phrase: "disappointing trips", explanation: "trips는 여기서 단순한 여행이 아닌 '어떤 목적을 품은 헛걸음 또는 이동'을 의미합니다. 감정을 느끼게 유발하는 형태이므로 현재분사인 -ing 형태로 수식합니다." }
+          ]
+        },
+        {
+          english: "As a solution, the two researchers set up a camera in front of the coffee machine.",
+          korean: "해결책으로, 두 연구원은 커피 머신 앞에 카메라를 설치했습니다.",
+          highlights: ["set up"],
+          underlines: ["As", "researchers", "in front of"],
+          vocabulary: [
+            { word: "As", pos: "전", meaning: "~로서, ~로(써)" },
+            { word: "researchers", pos: "명", meaning: "연구원" },
+            { word: "set up", pos: "동", meaning: "설치하다 (과거형도 동일하게 set)" },
+            { word: "in front of", pos: "전", meaning: "~의 앞에" }
+          ],
+          grammar: []
+        },
+        {
+          english: "The camera took pictures of the coffee pot three times a minute.",
+          korean: "카메라는 1분에 세 번씩 커피 포트 사진을 찍었습니다.",
+          highlights: ["took"],
+          underlines: ["three times"],
+          vocabulary: [
+            { word: "three times", pos: "구", meaning: "세 번" }
+          ],
+          grammar: [
+            { phrase: "took pictures of", explanation: "take pictures of(~의 사진을 찍다)의 과거 시제 표현입니다." },
+            { phrase: "a minute", explanation: "여기서 부정관사 a/an은 '~마다(per)'의 빈도/비율을 나타내는 의미로 쓰였습니다. (즉, 1분당 세 번)" }
+          ]
+        },
+        {
+          english: "With special software, all the researchers in the building could see the pictures on their local network.",
+          korean: "전용 소프트웨어를 통해 건물 내 모든 연구원들이 로컬 네트워크에서 사진을 볼 수 있었습니다.",
+          highlights: ["could see"],
+          underlines: ["special", "network"],
+          vocabulary: [
+            { word: "special", pos: "형", meaning: "특수한, 특별한" },
+            { word: "network", pos: "명", meaning: "통신망 (local network: 로컬 네트워크)" }
+          ],
+          grammar: [
+            { phrase: "could see", explanation: "조동사 can의 과거형인 could와 조동사 뒤 동사원형 see를 병렬하여 과거에 볼 능력을 소지했음을 표명합니다." }
+          ]
+        },
+        {
+          english: "No more disappointing trips!",
+          korean: "더 이상 실망스러운 걸음을 하지 않아도 되었습니다!",
+          underlines: ["No more"],
+          vocabulary: [
+            { word: "No more", pos: "구", meaning: "더 이상 ~ 않는" }
+          ],
+          grammar: []
+        }
+      ],
+      exercises: [
+        {
+          id: "rd3_q1",
+          type: "multiple-choice",
+          question: "Why was the first webcam invented?",
+          options: ["To watch a coffee pot", "To record video lectures", "To guard the entrance of the lab", "To talk with family members"],
+          answer: 0
+        },
+        {
+          id: "rd3_q2",
+          type: "short-answer",
+          question: "In what year did Dr. Quentin and Dr. Paul set up the webcam system?",
+          answer: "1991"
+        },
+        {
+          id: "rd3_q3",
+          type: "multiple-choice",
+          question: "What went wrong when researchers went to get coffee before the webcam was invented?",
+          options: [
+            "The computer lab was closed.",
+            "The coffee pot was often empty.",
+            "The coffee was too hot to drink.",
+            "The coffee machine only accepted coins."
+          ],
+          answer: 1
+        },
+        {
+          id: "rd3_q4",
+          type: "short-answer",
+          question: "The camera took pictures of the coffee pot _______ times a minute. (영어 단어로 입력)",
+          answer: "three"
+        },
+        {
+          id: "rd3_q5",
+          type: "multiple-choice",
+          question: "How did researchers view the pictures taken by the camera?",
+          options: [
+            "On their mobile phone screen",
+            "On their local network",
+            "On a television in the lobby",
+            "In printed daily reports"
+          ],
+          answer: 1
+        }
+      ]
+    }
+  ],
   grammar: [
     {
       title: "수동태 (Passive Voice)",
-      explanation: "주어가 어떤 동작을 하는 것이 아니라 받는 것을 나타낼 때 사용합니다. 형태: be동사 + 과거분사 (p.p.) + by+행위자",
+      explanation: "주어가 어떤 동작을 하는 것이 아니라 받는 것을 나타낼 때 사용합니다.\n형태: be동사 + 과거분사 (p.p.) + by+행위자",
       examples: [
         "Bette Graham invented whiteout. (능동태)",
         "Whiteout was invented by Bette Graham. (수동태)",
@@ -145,7 +664,7 @@ export const worksheetData: WorksheetData = {
     },
     {
       title: "have to (~해야 한다)",
-      explanation: "강한 의무를 나타낼 때 사용하며, 주어와 시제에 따라 have to / has to / had to로 변합니다. 부정형 'don't have to'는 '~할 필요가 없다'는 뜻입니다.",
+      explanation: "강한 의무를 나타낼 때 사용하며, 주어와 시제에 따라 have to / has to / had to로 변합니다.\n부정형 'don't have to'는 '~할 필요가 없다'는 뜻입니다.",
       examples: [
         "You have to get up early. (너는 일찍 일어나야 한다.)",
         "She has to work now. (3인칭 단수, 현재)",
