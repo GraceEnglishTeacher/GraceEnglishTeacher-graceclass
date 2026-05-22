@@ -216,18 +216,18 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F5F5F0] font-sans text-[#1A1A1A] pb-10">
       {/* Header */}
-      <header className="bg-white border-b border-[#E5E5E0] sticky top-0 z-50 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+      <header className="bg-white border-b border-[#E5E5E0] sticky top-0 z-50 px-8 py-5">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div 
-            className="flex items-center gap-3 cursor-pointer"
+            className="flex items-center gap-4 cursor-pointer"
             onClick={() => selectTab(null)}
           >
-            <div className="bg-[#5A5A40] text-white p-2 rounded-xl">
-              <BookOpen size={24} />
+            <div className="bg-[#5A5A40] text-white p-3 rounded-2xl shadow-sm">
+              <BookOpen size={30} />
             </div>
             <div>
-              <h1 className="font-bold text-xl leading-none">{worksheetData.title}</h1>
-              <span className="text-xs text-[#5A5A40] font-bold tracking-wider uppercase opacity-80 block mt-1">
+              <h1 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-[#1A1A1A] leading-none mb-1.5">{worksheetData.title}</h1>
+              <span className="text-sm sm:text-base lg:text-lg text-[#5A5A40] font-extrabold tracking-wide block">
                 {worksheetData.unit}
               </span>
             </div>
@@ -244,7 +244,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 pt-10">
+      <main className="max-w-5xl mx-auto px-6 pt-10">
         <AnimatePresence mode="wait">
           {!activeTab ? (
             <motion.div 
@@ -252,7 +252,7 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              className="grid grid-cols-1 md:grid-cols-2 gap-8"
             >
               <MenuCard 
                 title="Voca Master" 
@@ -920,7 +920,7 @@ function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: {
   );
 }
 
-function MenuCard({ title, subtitle, description, icon, onClick, color }: any) {
+function MenuCard({ title, subtitle, description, icon, onClick, color, className = "" }: any) {
   const colors = {
     blue: 'hover:border-blue-200 hover:bg-blue-50/30',
     amber: 'hover:border-amber-200 hover:bg-amber-50/30',
@@ -931,21 +931,23 @@ function MenuCard({ title, subtitle, description, icon, onClick, color }: any) {
 
   return (
     <motion.div 
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={{ y: -6, scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
       onClick={onClick}
-      className={`bg-white p-8 rounded-3xl border border-[#E5E5E0] cursor-pointer transition-all duration-300 ${colors[color as keyof typeof colors]}`}
+      className={`bg-white p-10 rounded-[2rem] border border-[#E5E5E0] cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md flex flex-col justify-between h-full ${colors[color as keyof typeof colors]} ${className}`}
     >
-      <div className="bg-[#F8F8F5] w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
-        {icon}
+      <div>
+        <div className="bg-[#F8F8F5] w-16 h-16 rounded-[1.25rem] flex items-center justify-center mb-8 [&_svg]:w-8 [&_svg]:h-8">
+          {icon}
+        </div>
+        <div className="mb-4">
+          <span className="text-xs sm:text-sm font-bold tracking-widest uppercase opacity-40 block mb-1.5">{subtitle}</span>
+          <h3 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight">{title}</h3>
+        </div>
+        <p className={`text-[#6B6B6B] text-base sm:text-lg leading-relaxed break-keep ${typeof description === 'string' && description.length < 35 ? 'whitespace-nowrap' : ''}`}>{description}</p>
       </div>
-      <div className="mb-2">
-        <span className="text-[10px] font-bold tracking-widest uppercase opacity-40">{subtitle}</span>
-        <h3 className="text-2xl font-bold">{title}</h3>
-      </div>
-      <p className="text-[#6B6B6B] text-sm leading-relaxed">{description}</p>
-      <div className="mt-8 flex items-center text-xs font-bold gap-1 opacity-40 group hover:opacity-100 transition-opacity">
-        학습하기 <ChevronRight size={14} className="mt-0.5" />
+      <div className="mt-8 flex items-center text-sm sm:text-base font-bold gap-1 text-[#5A5A40] group">
+        학습 시작하기 <ChevronRight size={18} className="transition-transform group-hover:translate-x-1" />
       </div>
     </motion.div>
   );
