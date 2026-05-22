@@ -289,7 +289,7 @@ export default function App() {
               <MenuCard 
                 title="Verbs Master" 
                 subtitle="Irregular Verbs"
-                description="교과서 필수 불규칙 동사 60개의 3단 변화(원형-과거형-과거분사형)를 발음과 퀴즈로 완성합니다."
+                description="불규칙 동사 60개의 3단 변화(원형-과거형-과거분사형)를 발음과 퀴즈로 완성합니다."
                 icon={<Languages className="text-[#8B5CF6]" />}
                 onClick={() => selectTab('verbs')}
                 color="violet"
@@ -1952,7 +1952,7 @@ function VerbsSection() {
             <div className="max-w-md mx-auto space-y-3">
               <h3 className="text-2xl sm:text-3xl font-black text-[#1A1A1A]">불규칙 동사 3단 변화 퀴즈</h3>
               <p className="text-[#6B6B61] text-xs sm:text-sm font-medium leading-relaxed">
-                교과서 필수 불규칙 동사 60개의 원형-과거형-과거분사형 변형을 테스트합니다. 아래에서 원하는 출제 방식과 범위를 맞춤 설정해 보세요.
+                불규칙 동사 60개의 원형-과거형-과거분사형 변형을 테스트합니다. 아래에서 원하는 출제 방식과 범위를 맞춤 설정해 보세요.
               </p>
             </div>
 
