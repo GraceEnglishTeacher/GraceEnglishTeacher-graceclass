@@ -14,8 +14,9 @@ import {
 } from 'lucide-react';
 import { worksheetData } from './data';
 import { QuizQuestion, VocabularyItem } from './types';
+import { irregularVerbCategories } from './verbData';
 
-type Tab = 'vocabulary' | 'listening' | 'grammar' | 'reading';
+type Tab = 'vocabulary' | 'listening' | 'grammar' | 'reading' | 'verbs';
 type SubTab = 'learn' | 'quiz' | 'review';
 
 export default function App() {
@@ -285,6 +286,14 @@ export default function App() {
                 onClick={() => selectTab('reading')}
                 color="rose"
               />
+              <MenuCard 
+                title="Verbs Master" 
+                subtitle="Irregular Verbs"
+                description="교과서 필수 불규칙 동사 60개의 3단 변화(원형-과거형-과거분사형)를 발음과 퀴즈로 완성합니다."
+                icon={<Languages className="text-[#8B5CF6]" />}
+                onClick={() => selectTab('verbs')}
+                color="violet"
+              />
             </motion.div>
           ) : (
             <motion.div 
@@ -348,6 +357,10 @@ export default function App() {
                   handleAnswer={handleAnswer}
                   resetQuiz={resetQuiz}
                 />
+              )}
+
+              {activeTab === 'verbs' && (
+                <VerbsSection />
               )}
             </motion.div>
           )}
@@ -913,6 +926,7 @@ function MenuCard({ title, subtitle, description, icon, onClick, color }: any) {
     amber: 'hover:border-amber-200 hover:bg-amber-50/30',
     emerald: 'hover:border-emerald-200 hover:bg-emerald-50/30',
     rose: 'hover:border-rose-200 hover:bg-rose-50/30',
+    violet: 'hover:border-violet-200 hover:bg-violet-50/30',
   };
 
   return (
@@ -972,6 +986,7 @@ function SectionHeader({ tab }: { tab: Tab }) {
     'listening': { main: 'Listening Master', sub: 'Listening & Speaking' },
     'grammar': { main: 'Grammar Master', sub: 'Grammar' },
     'reading': { main: 'Reading Master', sub: 'Reading' },
+    'verbs': { main: 'Verbs Master', sub: 'Irregular Verbs (불규칙동사)' },
   };
 
   return (
@@ -1580,5 +1595,764 @@ function QuizSection({ questions, state, handleAnswer, onReset }: any) {
     </div>
   );
 }
+
+function VerbsSection() {
+  const [subTab, setSubTab] = useState<'learn' | 'quiz'>('learn');
+
+  // Filter and search
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // TTS helper functions
+  const speakConjugation = (base: string, past: string, pp: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(`${base}... ${past}... ${pp}`);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.85;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const speakSingle = (word: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Quiz States
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [quizMode, setQuizMode] = useState<'choice' | 'write'>('choice');
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [feedbackState, setFeedbackState] = useState<boolean | null>(null);
+  const [userAnswers, setUserAnswers] = useState<any[]>([]);
+  const [tempInput, setTempInput] = useState('');
+  const [quizFinished, setQuizFinished] = useState(false);
+  
+  // Custom configurations for quiz coverage
+  const [quizRange, setQuizRange] = useState<string>('all');
+  const [quizLength, setQuizLength] = useState<number | 'all'>(10);
+
+  // Initialize Quiz
+  const startQuiz = (mode: 'choice' | 'write') => {
+    setQuizMode(mode);
+    setQuizStarted(true);
+    setQuizFinished(false);
+    setCurrentIdx(0);
+    setScore(0);
+    setFeedbackState(null);
+    setTempInput('');
+
+    // Fetch verbs based on quizRange
+    let verbsToPool: any[] = [];
+    if (quizRange === 'all') {
+      verbsToPool = irregularVerbCategories.flatMap(c => 
+        c.verbs.map(v => ({ ...v, categoryTitle: c.title }))
+      );
+    } else {
+      const selectedCat = irregularVerbCategories.find(c => c.type === quizRange);
+      if (selectedCat) {
+        verbsToPool = selectedCat.verbs.map(v => ({ ...v, categoryTitle: selectedCat.title }));
+      } else {
+        verbsToPool = irregularVerbCategories.flatMap(c => 
+          c.verbs.map(v => ({ ...v, categoryTitle: c.title }))
+        );
+      }
+    }
+    
+    // Robust Fisher-Yates shuffle algorithm to ensure uniform selection of all 60 verbs
+    const shuffleArray = (arr: any[]) => {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    };
+
+    const shuffledVerbs = shuffleArray(verbsToPool);
+    const limit = quizLength === 'all' ? shuffledVerbs.length : Math.min(quizLength, shuffledVerbs.length);
+    const selectedVerbs = shuffledVerbs.slice(0, limit);
+
+    const questions = selectedVerbs.map((v, index) => {
+      // Choose to hide Past or Past Participle
+      const target = Math.random() > 0.5 ? 'past' : 'pastParticiple';
+      const correctAnswer = target === 'past' ? v.past : v.pastParticiple;
+      const hiddenLabel = target === 'past' ? '과거형(Past)' : '과거분사형(Past Participle)';
+
+      // Distractor generator for MCQ options
+      const allForms = verbsToPool.flatMap(verbObj => [verbObj.past, verbObj.pastParticiple]);
+      const uniqueForms = Array.from(new Set(allForms)).filter(f => f.toLowerCase() !== correctAnswer.toLowerCase());
+      const shuffledOptions = shuffleArray(uniqueForms);
+      const distractors = shuffledOptions.slice(0, 3);
+      const options = shuffleArray([...distractors, correctAnswer]);
+
+      return {
+        id: index,
+        verb: v,
+        target,
+        correctAnswer,
+        hiddenLabel,
+        options,
+      };
+    });
+
+    setQuizQuestions(questions);
+    setUserAnswers(Array(limit).fill(null));
+  };
+
+  const handleAnswerSubmit = (ans: string) => {
+    if (feedbackState !== null) return;
+
+    const currentQ = quizQuestions[currentIdx];
+    const isCorrect = ans.trim().toLowerCase() === currentQ.correctAnswer.toLowerCase();
+
+    setFeedbackState(isCorrect);
+    if (isCorrect) {
+      setScore(prev => prev + 1);
+    }
+
+    const updatedAnswers = [...userAnswers];
+    updatedAnswers[currentIdx] = ans;
+    setUserAnswers(updatedAnswers);
+
+    // MCQ automatically advances after a small delay
+    if (quizMode === 'choice') {
+      setTimeout(() => {
+        advanceQuestion();
+      }, 1200);
+    }
+  };
+
+  const advanceQuestion = () => {
+    setFeedbackState(null);
+    setTempInput('');
+    if (currentIdx < quizQuestions.length - 1) {
+      setCurrentIdx(prev => prev + 1);
+    } else {
+      setQuizFinished(true);
+    }
+  };
+
+  // Filter verbs
+  const filteredCategories = irregularVerbCategories
+    .map(category => {
+      if (categoryFilter !== 'all' && category.type !== categoryFilter) {
+        return null;
+      }
+      
+      const filteredVerbs = category.verbs.filter(v => {
+        const query = searchQuery.toLowerCase().trim();
+        if (!query) return true;
+        return (
+          v.base.toLowerCase().includes(query) ||
+          v.past.toLowerCase().includes(query) ||
+          v.pastParticiple.toLowerCase().includes(query) ||
+          v.meaning.includes(query)
+        );
+      });
+
+      if (filteredVerbs.length === 0) return null;
+
+      return {
+        ...category,
+        verbs: filteredVerbs
+      };
+    })
+    .filter((cat): cat is any => cat !== null);
+
+  return (
+    <div className="space-y-8">
+      {/* Tab Switcher */}
+      <div className="flex bg-[#F8F8F5] p-1.5 rounded-2xl mb-8 w-fit mx-auto border border-[#E5E5E0]">
+        <button 
+          onClick={() => { setSubTab('learn'); setQuizStarted(false); }}
+          className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
+        >
+          학습하기
+        </button>
+        <button 
+          onClick={() => { setSubTab('quiz'); setQuizStarted(false); }}
+          className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
+        >
+          퀴즈풀기
+        </button>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {subTab === 'learn' ? (
+          <motion.div 
+            key="learn"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-6"
+          >
+            {/* Learn Onboarding Header */}
+            <div className="bg-[#F8F8F5] border border-[#E5E5E0] p-6 rounded-2xl flex items-start gap-4">
+              <Info className="text-[#5A5A40] shrink-0 mt-1" size={20} />
+              <div>
+                <h4 className="font-bold text-[#1A1A1A]">불규칙 동사 3단 변화 학습</h4>
+                <p className="text-sm text-[#6B6B60] leading-relaxed">
+                  동사 모양에 따른 4가지 유형 구분을 공부하고, 🔊 버튼을 눌러 정확한 원형-과거형-과거분사형 발음 훈련을 해보세요.
+                </p>
+              </div>
+            </div>
+
+            {/* Filter control */}
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2 justify-center">
+                {['all', 'A-B-C', 'A-B-A', 'A-B-B', 'A-A-A'].map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setCategoryFilter(t)}
+                    className={`px-4 py-2 rounded-xl font-bold text-xs sm:text-sm border transition-all ${
+                      categoryFilter === t
+                        ? 'bg-[#5A5A40] text-white border-[#5A5A40] shadow-sm'
+                        : 'bg-[#F8F8F5] text-[#8A8A80] border-[#E5E5E0] hover:border-[#8A8A80] hover:text-[#5A5A40]'
+                    }`}
+                  >
+                    {t === 'all' ? '전체 동사 (60개)' : `${t} 형태`}
+                  </button>
+                ))}
+              </div>
+
+              {/* Instant Search Bar */}
+              <div className="relative max-w-md mx-auto">
+                <input
+                  type="text"
+                  placeholder="🔍 동사 스펠링 또는 뜻으로 즉시 찾기 (예: break, 달리다)"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-5 py-3 pr-10 rounded-2xl border-2 border-[#E5E5E0] focus:border-[#5A5A40] focus:outline-none font-bold text-sm transition-all"
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-[#5A5A40] opacity-60 hover:opacity-100"
+                  >
+                    지우기
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Tables listings */}
+            <div className="space-y-10 pt-4">
+              {filteredCategories.length > 0 ? (
+                filteredCategories.map((cat: any) => (
+                  <div key={cat.title} className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-6 rounded-full bg-[#5A5A40]" />
+                      <h4 className="text-lg font-black text-[#1A1A1A]">{cat.title}</h4>
+                    </div>
+
+                    <div className="bg-white rounded-[2rem] border border-[#E5E5E0] overflow-hidden shadow-sm">
+                      {/* Desktop Headings */}
+                      <div className="hidden md:grid grid-cols-12 gap-2 bg-[#F8F8F5] p-4 text-xs font-black text-[#8A8A80] border-b border-[#E5E5E0] uppercase tracking-widest text-center">
+                        <div className="col-span-1">#</div>
+                        <div className="col-span-2 text-left">원형 (Base)</div>
+                        <div className="col-span-2 text-left">과거형 (Past)</div>
+                        <div className="col-span-2 text-left">과거분사형 (P.P.)</div>
+                        <div className="col-span-4 text-left">의미 (Meaning)</div>
+                        <div className="col-span-1">발음</div>
+                      </div>
+
+                      <div className="divide-y divide-[#F0F0EB]">
+                        {cat.verbs.map((verb: any) => (
+                          <div key={verb.id} className="hover:bg-amber-50/10 transition-colors">
+                            {/* Desktop row */}
+                            <div className="hidden md:grid grid-cols-12 gap-2 items-center p-4 text-center text-sm font-medium">
+                              <div className="col-span-1 font-mono text-[#8A8A80] text-xs font-bold">{verb.id}</div>
+                              <div className="col-span-2 text-left font-black text-neutral-800 text-lg">{verb.base}</div>
+                              <div className="col-span-2 text-left font-extrabold text-[#5A5A40] text-lg">{verb.past}</div>
+                              <div className="col-span-2 text-left font-extrabold text-indigo-600 text-lg">{verb.pastParticiple}</div>
+                              <div className="col-span-4 text-left font-semibold text-[#8A8A80]">{verb.meaning}</div>
+                              <div className="col-span-1 flex justify-center">
+                                <button 
+                                  onClick={() => speakConjugation(verb.base, verb.past, verb.pastParticiple)}
+                                  className="p-1.5 rounded-lg border border-[#E5E5E0] bg-white text-[#5A5A40] hover:bg-[#F0F0EB] transition-colors"
+                                  title="3단 변화 연속 듣기"
+                                >
+                                  <Volume2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Mobile visual card layout */}
+                            <div className="md:hidden p-5 flex flex-col gap-3">
+                              <div className="flex justify-between items-center">
+                                <span className="font-mono text-[10px] font-black bg-[#E5E5E0] px-2 py-0.5 rounded text-[#5A5A40]">
+                                  No. {verb.id}
+                                </span>
+                                <button 
+                                  onClick={() => speakConjugation(verb.base, verb.past, verb.pastParticiple)}
+                                  className="p-2 rounded-full border border-[#E5E5E0] bg-white text-[#5A5A40] hover:bg-[#F0F0EB] transition-colors"
+                                >
+                                  <Volume2 size={14} />
+                                </button>
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-1.5 text-base font-black">
+                                <button
+                                  onClick={() => speakSingle(verb.base)}
+                                  className="bg-neutral-100 text-neutral-800 px-2.5 py-1 rounded-lg text-sm hover:bg-neutral-200 transition-colors"
+                                >
+                                  {verb.base}
+                                </button>
+                                <span className="text-[#8A8A80] text-xs">→</span>
+                                <button
+                                  onClick={() => speakSingle(verb.past)}
+                                  className="bg-amber-50 text-[#5A5A40] border border-amber-200/50 px-2.5 py-1 rounded-lg text-sm hover:bg-amber-100 transition-colors"
+                                >
+                                  {verb.past}
+                                </button>
+                                <span className="text-[#8A8A80] text-xs">→</span>
+                                <button
+                                  onClick={() => speakSingle(verb.pastParticiple)}
+                                  className="bg-indigo-50 text-indigo-700 border border-indigo-200/50 px-2.5 py-1 rounded-lg text-sm hover:bg-indigo-100 transition-colors"
+                                >
+                                  {verb.pastParticiple}
+                                </button>
+                              </div>
+                              <p className="text-xs font-bold text-[#6B6B60] mt-1">{verb.meaning}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-20 bg-[#F8F8F5] p-10 rounded-3xl border border-dashed border-[#E5E5E0]">
+                  <HelpCircle size={48} className="mx-auto text-[#8A8A80] mb-4 opacity-25" />
+                  <p className="text-base font-bold text-[#8A8A80]">일치하는 불규칙 동사 검색 결과가 없습니다.</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        ) : !quizStarted ? (
+          // Quiz Landing Page
+          <motion.div 
+            key="quiz-landing"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center bg-[#F8F8F5] border-2 border-dashed border-[#E5E5E0] p-8 md:p-12 rounded-[2.5rem] space-y-8"
+          >
+            <div className="w-20 h-20 rounded-[2rem] bg-white shadow-xl flex items-center justify-center mx-auto text-[#8B5CF6] border-4 border-violet-50">
+              <Languages size={40} />
+            </div>
+            
+            <div className="max-w-md mx-auto space-y-3">
+              <h3 className="text-2xl sm:text-3xl font-black text-[#1A1A1A]">불규칙 동사 3단 변화 퀴즈</h3>
+              <p className="text-[#6B6B61] text-xs sm:text-sm font-medium leading-relaxed">
+                교과서 필수 불규칙 동사 60개의 원형-과거형-과거분사형 변형을 테스트합니다. 아래에서 원하는 출제 방식과 범위를 맞춤 설정해 보세요.
+              </p>
+            </div>
+
+            {/* Range and Length settings */}
+            <div className="max-w-2xl mx-auto rounded-3xl border border-[#E5E5E0] bg-white p-6 space-y-6 text-left shadow-sm">
+              <div className="space-y-3">
+                <label className="text-sm font-black text-[#5A5A40] flex items-center gap-1.5">
+                  <span className="w-1.5 h-3 rounded bg-indigo-500" />
+                  출제 범위 설정 (Category Range)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => {
+                      setQuizRange('all');
+                      setQuizLength(10);
+                    }}
+                    className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all ${
+                      quizRange === 'all'
+                        ? 'bg-[#5A5A40] text-white border-[#5A5A40] shadow-sm'
+                        : 'bg-[#F8F8F5] text-[#8A8A80] border-[#E5E5E0] hover:border-[#8A8A80] hover:text-[#5A5A40]'
+                    }`}
+                  >
+                    전체 동사 (60개)
+                  </button>
+                  {[
+                    { type: 'A-B-C', label: '① A-B-C 형태 (25개)' },
+                    { type: 'A-B-A', label: '② A-B-A 형태 (3개)' },
+                    { type: 'A-B-B', label: '③ A-B-B 형태 (26개)' },
+                    { type: 'A-A-A', label: '④ A-A-A 형태 (6개)' }
+                  ].map((cfg) => (
+                    <button
+                      key={cfg.type}
+                      onClick={() => {
+                        setQuizRange(cfg.type);
+                        if (cfg.type === 'A-B-A' || cfg.type === 'A-A-A') {
+                          setQuizLength('all');
+                        } else {
+                          setQuizLength(10);
+                        }
+                      }}
+                      className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all ${
+                        quizRange === cfg.type
+                          ? 'bg-[#5A5A40] text-white border-[#5A5A40] shadow-sm'
+                          : 'bg-[#F8F8F5] text-[#8A8A80] border-[#E5E5E0] hover:border-[#8A8A80] hover:text-[#5A5A40]'
+                      }`}
+                    >
+                      {cfg.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-sm font-black text-[#5A5A40] flex items-center gap-1.5">
+                  <span className="w-1.5 h-3 rounded bg-indigo-500" />
+                  출제 문항 수 설정 (Quiz Length)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[10, 20, 30, 'all'].map((val) => {
+                    // Calculate dynamic maximum possible questions
+                    const maxCount = quizRange === 'all' 
+                      ? 60 
+                      : (quizRange === 'A-B-C' ? 25 : (quizRange === 'A-B-A' ? 3 : (quizRange === 'A-B-B' ? 26 : 6)));
+                    
+                    if (typeof val === 'number' && val > maxCount) return null;
+
+                    return (
+                      <button
+                        key={val}
+                        onClick={() => setQuizLength(val as any)}
+                        className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all ${
+                          quizLength === val
+                            ? 'bg-[#5A5A40] text-white border-[#5A5A40] shadow-sm'
+                            : 'bg-[#F8F8F5] text-[#8A8A80] border-[#E5E5E0] hover:border-[#8A8A80] hover:text-[#5A5A40]'
+                        }`}
+                      >
+                        {val === 'all' ? `범위 내 전체 (${maxCount}문항)` : `${val}문항`}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto pt-4">
+              {/* Option A: MCQ */}
+              <button 
+                onClick={() => startQuiz('choice')}
+                className="bg-white p-6 rounded-3xl border-2 border-[#E5E5E0] hover:border-[#8B5CF6] text-left transition-all hover:shadow-lg active:scale-95 group/btn"
+              >
+                <div className="w-10 h-10 rounded-xl bg-violet-50 text-[#8B5CF6] flex items-center justify-center font-bold mb-4 group-hover/btn:bg-[#8B5CF6] group-hover/btn:text-white transition-colors">
+                  A
+                </div>
+                <h4 className="font-extrabold text-[#1A1A1A] text-base">객관식 퀴즈풀기</h4>
+                <p className="text-xs font-bold text-[#8A8A80] mt-1 leading-snug">
+                  4개의 변형 형태 중 알맞은 과거형/과거분사형을 찾아 클릭합니다.
+                </p>
+              </button>
+
+              {/* Option B: Write */}
+              <button 
+                onClick={() => startQuiz('write')}
+                className="bg-white p-6 rounded-3xl border-2 border-[#E5E5E0] hover:border-[#8B5CF6] text-left transition-all hover:shadow-lg active:scale-95 group/btn"
+              >
+                <div className="w-10 h-10 rounded-xl bg-violet-50 text-[#8B5CF6] flex items-center justify-center font-bold mb-4 group-hover/btn:bg-[#8B5CF6] group-hover/btn:text-white transition-colors">
+                  B
+                </div>
+                <h4 className="font-extrabold text-[#1A1A1A] text-base">주관식 직접 타이핑</h4>
+                <p className="text-xs font-bold text-[#8A8A80] mt-1 leading-snug">
+                  빈칸에 들어갈 과거형 또는 과거분사형 스펠링을 직접 타이핑하여 정확히 익힙니다.
+                </p>
+              </button>
+            </div>
+          </motion.div>
+        ) : quizFinished ? (
+          // Quiz Results View
+          <motion.div 
+            key="quiz-results"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+          >
+            <div className="text-center py-10 bg-[#F8F8F5] p-10 border-2 border-dashed border-[#E5E5E0] rounded-[2.5rem]">
+              <div className="w-20 h-20 bg-white text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl border-4 border-emerald-50">
+                <CheckCircle2 size={48} />
+              </div>
+              <h3 className="text-3xl font-black mb-2 text-[#1A1A1A]">퀴즈가 완료되었습니다!</h3>
+              
+              <div className="flex justify-center gap-8 my-8">
+                <div className="text-center">
+                  <p className="text-xs font-bold text-[#8A8A80] uppercase tracking-widest mb-1">Score</p>
+                  <p className="text-4xl font-black text-[#1A1A1A]">
+                    {quizQuestions.length > 0 ? Math.round((score / quizQuestions.length) * 100) : 0}
+                    <span className="text-lg opacity-40 ml-1">%</span>
+                  </p>
+                </div>
+                <div className="w-px h-12 bg-[#E5E5E0] self-center" />
+                <div className="text-center">
+                  <p className="text-xs font-bold text-[#8A8A80] uppercase tracking-widest mb-1">Correct</p>
+                  <p className="text-4xl font-black text-emerald-500">
+                    {score}
+                    <span className="text-lg text-[#1A1A1A] opacity-40 ml-1">/ {quizQuestions.length}</span>
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+                <button 
+                  onClick={() => startQuiz(quizMode)}
+                  className="flex-1 bg-[#1A1A1A] text-white py-4 rounded-2xl font-bold text-base shadow-md hover:bg-black transition-all active:scale-[0.98]"
+                >
+                  같은 모집단 재도전
+                </button>
+                <button 
+                  onClick={() => setQuizStarted(false)}
+                  className="flex-1 bg-white border border-[#E5E5E0] text-[#5A5A40] py-4 rounded-2xl font-bold text-base shadow-sm hover:bg-[#F8F8F5] transition-all"
+                >
+                  모드 바 가기
+                </button>
+              </div>
+            </div>
+
+            {/* Detailed Questions Review */}
+            <div className="space-y-4">
+              <h4 className="text-xl font-bold text-[#1A1A1A] px-2 flex items-center gap-2">
+                <Info size={20} className="text-[#5A5A40]" />
+                오답 상세 피드백 노란 분석표
+              </h4>
+              <div className="bg-white rounded-3xl border border-[#E5E5E0] overflow-hidden shadow-sm">
+                <div className="grid grid-cols-1 divide-y divide-[#F0F0EB]">
+                  {quizQuestions.map((q: any, idx: number) => {
+                    const ans = userAnswers[idx];
+                    const isCorrect = String(ans).toLowerCase().trim() === String(q.correctAnswer).toLowerCase().trim();
+
+                    return (
+                      <div key={idx} className={`p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${isCorrect ? 'bg-emerald-50/20' : 'bg-rose-50/30'}`}>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-3">
+                            <span className={`text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full ${isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                              Q{idx + 1}
+                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-extrabold text-neutral-800 text-base">{q.verb.base}</span>
+                              <span className="text-[#8A8A80] text-xs">({q.verb.meaning})의</span>
+                              <span className="text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded-md text-xs">{q.hiddenLabel}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-4 pt-1 flex-wrap">
+                            <p className="text-xs sm:text-sm font-medium text-[#6B6B6B]">
+                              내 입력: <span className={`font-black ${isCorrect ? 'text-emerald-600' : 'text-rose-600 underline'}`}>{ans || '(빈칸)'}</span>
+                            </p>
+                            {!isCorrect && (
+                              <p className="text-xs sm:text-sm font-medium text-emerald-600">
+                                정답: <span className="font-black underline">{q.correctAnswer}</span>
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 self-end sm:self-auto">
+                          <button 
+                            onClick={() => speakConjugation(q.verb.base, q.verb.past, q.verb.pastParticiple)}
+                            className="p-1.5 rounded-lg border border-[#E5E5E0] bg-white text-[#5A5A40] hover:bg-[#F0F0EB] transition-colors"
+                            title="3단 변화 듣기"
+                          >
+                            <Volume2 size={14} />
+                          </button>
+                          {isCorrect ? (
+                            <CheckCircle2 size={24} className="text-emerald-500" />
+                          ) : (
+                            <XCircle size={24} className="text-rose-500" />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          // Active Question Screen
+          <motion.div 
+            key={currentIdx}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            className="space-y-6"
+          >
+            {/* Header / progress bar */}
+            <div className="flex justify-between items-center bg-[#F8F8F5] p-3 rounded-2xl border border-[#E5E5E0]">
+              <span className="text-xs font-black text-[#5A5A40]">문제 {currentIdx + 1} / {quizQuestions.length} </span>
+              <div className="h-2 w-32 sm:w-48 bg-[#E5E5E0] rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-indigo-600 transition-all duration-500 animate-pulse" 
+                  style={{ width: `${((currentIdx + 1) / quizQuestions.length) * 100}%` }}
+                />
+              </div>
+              <button 
+                onClick={() => setQuizStarted(false)}
+                className="text-xs font-black text-rose-500 hover:text-rose-700"
+              >
+                중단하기
+              </button>
+            </div>
+
+            {/* Large Card displaying base and Korean */}
+            <div className="bg-[#F8F8F5] p-8 rounded-[2rem] border-l-8 border-[#8B5CF6] relative overflow-hidden shadow-sm">
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#8A8A80] mb-3 block">
+                {quizQuestions[currentIdx]?.verb.categoryTitle || 'Irregular Verb'}
+              </span>
+
+              {/* Large formula preview with hidden blanks */}
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-baseline gap-3 text-2xl sm:text-3xl font-black tracking-tight text-[#1A1A1A]">
+                  <span className="underline decoration-[#E5E5E0] underline-offset-4">{quizQuestions[currentIdx]?.verb.base}</span>
+                  <span className="text-neutral-400 text-lg">→</span>
+                  
+                  {quizQuestions[currentIdx]?.target === 'past' ? (
+                    <span className="bg-violet-100 text-[#8B5CF6] ring-2 ring-[#8B5CF6]/50 rounded-xl px-3 py-1 text-xl sm:text-2xl animate-pulse">
+                      ?
+                    </span>
+                  ) : (
+                    <span className="font-extrabold text-[#5A5A40] text-xl sm:text-2xl">{quizQuestions[currentIdx]?.verb.past}</span>
+                  )}
+                  
+                  <span className="text-neutral-400 text-lg">→</span>
+
+                  {quizQuestions[currentIdx]?.target === 'pastParticiple' ? (
+                    <span className="bg-violet-100 text-[#8B5CF6] ring-2 ring-[#8B5CF6]/50 rounded-xl px-3 py-1 text-xl sm:text-2xl animate-pulse">
+                      ?
+                    </span>
+                  ) : (
+                    <span className="font-extrabold text-[#5A5A40] text-xl sm:text-2xl">{quizQuestions[currentIdx]?.verb.pastParticiple}</span>
+                  )}
+                </div>
+
+                <p className="text-sm sm:text-base font-extrabold text-[#6B6B5F]">
+                  뜻: {quizQuestions[currentIdx]?.verb.meaning}
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#E5E5E0]/60">
+                <p className="text-[#1A1A1A] text-sm font-black flex items-center gap-1.5">
+                  <span className="w-1.5 h-3 rounded bg-indigo-500" />
+                  동사 원형 <span className="underline font-sans">{quizQuestions[currentIdx]?.verb.base}</span>의 <span className="text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md font-sans text-xs">{quizQuestions[currentIdx]?.hiddenLabel}</span> 형태를 알려주세요.
+                </p>
+              </div>
+            </div>
+
+            {/* Answer selector modes */}
+            <div className="pt-2">
+              {quizMode === 'choice' ? (
+                // Choice layout
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {quizQuestions[currentIdx]?.options.map((option: string, oIdx: number) => {
+                    const isAnswered = feedbackState !== null;
+                    const isCorrectOption = option.toLowerCase() === quizQuestions[currentIdx]?.correctAnswer.toLowerCase();
+                    const isSelected = userAnswers[currentIdx]?.toLowerCase() === option.toLowerCase();
+
+                    return (
+                      <button
+                        key={oIdx}
+                        disabled={isAnswered}
+                        onClick={() => handleAnswerSubmit(option)}
+                        className={`w-full text-left p-5 rounded-2xl border-2 transition-all flex items-center justify-between group h-full shadow-sm hover:-translate-y-0.5 ${
+                          isAnswered
+                            ? isCorrectOption
+                              ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-extrabold'
+                              : isSelected
+                                ? 'border-rose-500 bg-rose-50 text-rose-700 font-extrabold'
+                                : 'border-[#F0F0EB] text-[#8A8A80]'
+                            : 'border-[#F0F0EB] bg-white text-neutral-800 hover:border-[#8B5CF6] hover:bg-[#F8F5FF]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="w-7 h-7 rounded-full bg-[#F0F0EB] flex items-center justify-center text-[10px] font-bold group-hover:bg-[#8B5CF6] group-hover:text-white transition-colors">
+                            {oIdx + 1}
+                          </span>
+                          <span className="font-bold text-lg">{option}</span>
+                        </div>
+                        {isAnswered && isCorrectOption && <CheckCircle2 size={20} className="text-emerald-500" />}
+                        {isAnswered && !isCorrectOption && isSelected && <XCircle size={20} className="text-rose-500" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                // Write Input typing layout
+                <div className="space-y-4 max-w-xl mx-auto">
+                  <input 
+                    type="text"
+                    value={tempInput}
+                    onChange={(e) => setTempInput(e.target.value)}
+                    disabled={feedbackState !== null}
+                    autoFocus
+                    placeholder="원형의 변형된 변이형을 입력하세요"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && tempInput.trim() && feedbackState === null) {
+                        handleAnswerSubmit(tempInput.trim());
+                      }
+                    }}
+                    className={`w-full p-5 rounded-2xl border-2 text-center text-xl font-bold focus:outline-none transition-all h-16 ${
+                      feedbackState !== null
+                        ? feedbackState
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                          : 'border-rose-500 bg-rose-50 text-rose-700 font-black'
+                        : 'border-[#F0F0EB] focus:border-[#8B5CF6] bg-white text-neutral-800'
+                    }`}
+                  />
+
+                  {/* Typing mode feedback card */}
+                  {feedbackState !== null && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className={`flex items-center gap-3.5 p-4 rounded-xl border ${
+                        feedbackState ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-rose-50 border-rose-500 text-rose-700'
+                      }`}
+                    >
+                      {feedbackState ? <CheckCircle2 size={26} /> : <XCircle size={26} />}
+                      <div className="text-sm">
+                        <p className="font-extrabold text-base">{feedbackState ? '정답입니다! 참 잘하셨어요.' : '오답입니다.'}</p>
+                        {!feedbackState && (
+                          <p className="font-bold mt-0.5">
+                            정답 철자: <span className="underline decoration-2 font-black tracking-wide bg-white px-2 py-0.5 rounded text-neutral-800 font-sans">{quizQuestions[currentIdx]?.correctAnswer}</span>
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Submission control */}
+                  {feedbackState === null ? (
+                    <button 
+                      onClick={() => { if (tempInput.trim()) handleAnswerSubmit(tempInput.trim()); }}
+                      disabled={!tempInput.trim()}
+                      className="w-full bg-[#1A1A1A] text-white py-4 rounded-2xl font-black text-lg shadow hover:bg-black transition-all active:scale-[0.98] disabled:opacity-30 disabled:pointer-events-none"
+                    >
+                      정답 입증하기
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={advanceQuestion}
+                      className="w-full bg-indigo-600 font-black text-lg text-white py-4 rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg"
+                    >
+                      다음 문제로 가기
+                      <ChevronRight size={18} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 
 
