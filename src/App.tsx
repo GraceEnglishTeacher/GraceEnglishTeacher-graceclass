@@ -227,7 +227,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-[#1A1A1A] leading-none mb-1.5">{worksheetData.title}</h1>
-              <span className="text-sm sm:text-base lg:text-lg text-[#5A5A40] font-extrabold tracking-wide block">
+              <span className="text-lg sm:text-xl lg:text-2xl text-[#5A5A40] font-black tracking-wide block">
                 {worksheetData.unit}
               </span>
             </div>
@@ -235,9 +235,9 @@ export default function App() {
           {activeTab && (
             <button 
               onClick={() => selectTab(null)}
-              className="flex items-center gap-2 text-sm font-bold bg-[#F8F8F5] px-4 py-2 rounded-full hover:bg-[#E5E5E0] transition-colors"
+              className="flex items-center gap-2.5 text-base sm:text-lg font-extrabold bg-[#F8F8F5] px-5 py-2.5 rounded-full hover:bg-[#E5E5E0] transition-colors shadow-sm"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft size={20} />
               메뉴로
             </button>
           )}
@@ -530,7 +530,7 @@ function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text
       ...connectors.map(c => ({ val: c, type: 'connector' }))
     ].sort((a, b) => b.val.length - a.val.length);
 
-    if (tokens.length === 0) return <span>{text}</span>;
+    if (tokens.length === 0) return <span className="break-keep">{text}</span>;
 
     // Create a regex that matches any of the targets
     const escapedTerms = tokens.map(t => t.val.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
@@ -538,7 +538,7 @@ function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text
 
     const parts = text.split(regex);
     return (
-      <>
+      <span className="break-keep">
         {parts.map((part: string, idx: number) => {
           const matchToken = tokens.find(t => t.val.toLowerCase() === part.toLowerCase());
           if (matchToken) {
@@ -546,7 +546,7 @@ function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text
               return (
                 <span 
                   key={idx} 
-                  className="bg-sky-100/90 text-sky-900 border-b-2 border-sky-400 font-extrabold px-1.5 py-0.5 mx-0.5 rounded transition-all"
+                  className="bg-sky-100/90 text-sky-900 border-b-2 border-sky-400 font-extrabold px-1.5 py-0.5 mx-0.5 rounded transition-all inline-block whitespace-nowrap break-keep"
                   title="서술어 동사 / 수동태 / 진행형"
                 >
                   {part}
@@ -557,7 +557,7 @@ function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text
               return (
                 <span 
                   key={idx} 
-                  className="underline decoration-rose-500 decoration-2 underline-offset-4 font-black text-neutral-800 mx-0.5"
+                  className="underline decoration-rose-500 decoration-2 underline-offset-4 font-black text-neutral-800 mx-0.5 inline-block whitespace-nowrap break-keep"
                   title="핵심 어휘"
                 >
                   {part}
@@ -568,7 +568,7 @@ function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text
               return (
                 <span 
                   key={idx} 
-                  className="inline-block px-2.5 py-0.5 mx-1 border border-rose-400 bg-rose-50 text-rose-600 rounded-full font-black text-xs"
+                  className="inline-block px-2.5 py-0.5 mx-1 border border-rose-400 bg-rose-50 text-rose-600 rounded-full font-black text-xs whitespace-nowrap break-keep"
                   title="접속사 / 연결어"
                 >
                   {part}
@@ -578,7 +578,7 @@ function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text
           }
           return <span key={idx}>{part}</span>;
         })}
-      </>
+      </span>
     );
   };
 
@@ -617,12 +617,12 @@ function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text
                     {idx + 1}
                   </span>
                   <div className="space-y-2 w-full">
-                    <p className={`text-base md:text-lg font-bold leading-relaxed tracking-tight ${
+                    <p className={`text-base md:text-lg font-bold leading-relaxed tracking-tight break-keep ${
                       isActive ? 'text-[#1A1A1A]' : 'text-neutral-500'
                     }`}>
                       {isActive ? highlightSentence(sentence) : sentence.english}
                     </p>
-                    <p className={`text-xs md:text-sm font-medium ${isActive ? 'text-[#8A8A80]' : 'text-[#A0A090]'}`}>
+                    <p className={`text-xs sm:text-sm md:text-[15px] font-medium break-keep ${isActive ? 'text-[#8A8A80]' : 'text-[#A0A090]'}`}>
                       {sentence.korean}
                     </p>
                   </div>
@@ -663,10 +663,10 @@ function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text
                 {/* Sentence review */}
                 <div className="space-y-2">
                   <p className="text-sm font-bold text-[#8A8A80] uppercase tracking-widest text-[10px]">Sentence</p>
-                  <p className="text-base md:text-lg font-extrabold text-[#1A1A1A] leading-relaxed">
+                  <p className="text-base md:text-lg font-extrabold text-[#1A1A1A] leading-relaxed break-keep">
                     {highlightSentence(story.analysis[activeSentenceIdx])}
                   </p>
-                  <p className="text-sm font-bold text-[#5A5A40] leading-relaxed bg-white/60 p-2.5 rounded-xl border border-[#E5E5E0]/40">
+                  <p className="text-base sm:text-lg font-bold text-[#5A5A40] leading-relaxed bg-white/60 p-2.5 rounded-xl border border-[#E5E5E0]/40 break-keep">
                     {story.analysis[activeSentenceIdx].korean}
                   </p>
                 </div>
@@ -674,14 +674,14 @@ function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text
                 {/* Grammar explanations */}
                 {story.analysis[activeSentenceIdx].grammar.length > 0 && (
                   <div className="space-y-3">
-                    <p className="text-sm font-bold text-[#8A8A80] uppercase tracking-widest text-[10px]">구문 및 어법 분석</p>
+                    <p className="text-xs sm:text-sm font-black text-[#8A8A80] uppercase tracking-widest">구문 및 어법 분석</p>
                     <div className="space-y-3">
-                      {story.analysis[activeSentenceIdx].grammar.map((g: any, gIdx: number) => (
-                        <div key={gIdx} className="bg-amber-50/40 p-3.5 rounded-xl border border-amber-100 space-y-1">
-                          <span className="inline-block px-2 py-0.5 text-xs font-bold rounded-md bg-[#5A5A40] text-white mb-2">
+                       {story.analysis[activeSentenceIdx].grammar.map((g: any, gIdx: number) => (
+                        <div key={gIdx} className="bg-amber-50/40 p-4 rounded-xl border border-amber-100 space-y-1.5 break-keep">
+                          <span className="inline-block px-3 py-1 text-base sm:text-lg font-extrabold rounded-md bg-[#5A5A40] text-white mb-2 break-keep">
                             {g.phrase}
                           </span>
-                          <p className="text-xs font-bold leading-relaxed text-[#5A5A40] whitespace-pre-line">
+                          <p className="text-base sm:text-lg font-bold leading-relaxed text-[#5A5A40] whitespace-pre-line break-keep">
                             {g.explanation}
                           </p>
                         </div>
@@ -693,17 +693,17 @@ function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text
                 {/* Vocabulary breakdowns */}
                 {story.analysis[activeSentenceIdx].vocabulary.length > 0 && (
                   <div className="space-y-3">
-                    <p className="text-sm font-bold text-[#8A8A80] uppercase tracking-widest text-[10px]">어휘 및 단어 풀이</p>
+                    <p className="text-xs sm:text-sm font-black text-[#8A8A80] uppercase tracking-widest">어휘 및 단어 풀이</p>
                     <div className="grid grid-cols-1 gap-2 bg-white p-4 rounded-xl border border-[#E5E5E0]">
                       {story.analysis[activeSentenceIdx].vocabulary.map((v: any, vIdx: number) => (
-                        <div key={vIdx} className="flex justify-between items-center text-xs py-1.5 border-b border-gray-100 last:border-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-extrabold text-neutral-800">{v.word}</span>
-                            <span className="text-[10px] scale-90 px-1 py-0.2 rounded bg-neutral-100 border text-neutral-500 font-extrabold">
+                        <div key={vIdx} className="flex justify-between items-center text-base sm:text-lg py-3 border-b border-gray-100 last:border-0 gap-4 break-keep">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-neutral-800 break-keep whitespace-nowrap">{v.word}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-100 border text-neutral-500 font-extrabold break-keep whitespace-nowrap">
                               {v.pos}
                             </span>
                           </div>
-                          <span className="font-bold text-[#5A5A40]">{v.meaning}</span>
+                          <span className="font-extrabold text-[#5A5A40] text-right break-keep">{v.meaning}</span>
                         </div>
                       ))}
                     </div>
@@ -763,25 +763,24 @@ function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: {
               setSubTab('learn');
               setShowAnalysis(false); // Reset analysis tab on story change
             }}
-            className={`p-5 rounded-2xl text-left border-2 transition-all flex flex-col justify-between group h-24 ${
+            className={`p-6 rounded-2xl text-left border-2 transition-all flex items-center group h-28 ${
               activeStoryIdx === idx
-                ? 'border-rose-500 bg-rose-50/20 shadow-md'
+                ? 'border-rose-500 bg-rose-50/20 shadow-md scale-[1.01]'
                 : 'border-[#E5E5E0] bg-white hover:border-rose-200'
             }`}
           >
-            <div className="flex items-center gap-2.5">
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] ${
+            <div className="flex items-center gap-4 w-full">
+              <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0 ${
                 activeStoryIdx === idx ? 'bg-rose-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
               }`}>
                 {idx + 1}
               </span>
-              <span className="font-extrabold text-base tracking-tight text-[#1A1A1A]">
-                {item.title.split(' ')[0]}
-              </span>
+              <div className="flex flex-col leading-tight min-w-0">
+                <span className="font-black text-xl sm:text-2xl tracking-tight text-[#1A1A1A] break-keep group-hover:text-rose-600 transition-colors">
+                  {item.title.replace(/\s+/g, '')}
+                </span>
+              </div>
             </div>
-            <p className="text-xs font-bold text-[#8A8A80] mt-1 group-hover:text-rose-500 transition-colors">
-              {item.title.substring(item.title.indexOf(' ') + 1)}
-            </p>
           </button>
         ))}
       </div>
@@ -791,7 +790,7 @@ function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: {
         {subTab !== 'quiz' && (
           <button 
             onClick={() => setSubTab('learn')}
-            className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${
+            className={`px-8 py-2.5 rounded-xl font-bold text-base transition-all ${
               subTab === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'
             }`}
           >
@@ -800,7 +799,7 @@ function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: {
         )}
         <button 
           onClick={() => setSubTab('quiz')}
-          className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${
+          className={`px-8 py-2.5 rounded-xl font-bold text-base transition-all ${
             subTab === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'
           }`}
         >
@@ -811,7 +810,7 @@ function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: {
       {subTab === 'learn' ? (
         <div className="space-y-10">
           <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center bg-[#F8F8F5] p-3 rounded-2xl border border-[#E5E5E0]">
-            <span className="text-sm font-bold px-4 text-[#5A5A40]">{story.title} 본문 학습</span>
+            <span className="text-lg sm:text-xl md:text-2xl font-black px-4 text-[#5A5A40] whitespace-nowrap">{story.title} 본문 학습</span>
             <div className="flex flex-wrap items-center gap-3">
               <button 
                 onClick={() => onSpeak(story.english)}
@@ -888,7 +887,7 @@ function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: {
                   <div className="absolute -top-4 left-8 bg-[#E5E5E0] text-[#5A5A40] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
                     Korean
                   </div>
-                  <p className="text-lg leading-[1.8] text-[#5A5A50] whitespace-pre-line">
+                  <p className="text-lg sm:text-xl leading-[1.8] text-[#5A5A50] whitespace-pre-line">
                     {story.korean}
                   </p>
                 </motion.div>
@@ -959,21 +958,21 @@ function TabSwitcher({ active, onChange, showReview = false, hideLearn = false }
       {!hideLearn && (
         <button 
           onClick={() => onChange('learn')}
-          className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${active === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
+          className={`px-8 py-2.5 rounded-xl font-bold text-base sm:text-lg transition-all ${active === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
         >
           학습하기
         </button>
       )}
       <button 
         onClick={() => onChange('quiz')}
-        className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${active === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
+        className={`px-8 py-2.5 rounded-xl font-bold text-base sm:text-lg transition-all ${active === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
       >
         퀴즈풀기
       </button>
       {showReview && (
         <button 
           onClick={() => onChange('review')}
-          className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${active === 'review' ? 'bg-orange-600 text-white shadow-md' : 'text-[#8A8A80] hover:text-orange-600'}`}
+          className={`px-8 py-2.5 rounded-xl font-bold text-base sm:text-lg transition-all ${active === 'review' ? 'bg-orange-600 text-white shadow-md' : 'text-[#8A8A80] hover:text-orange-600'}`}
         >
           오답 복습
         </button>
@@ -1207,38 +1206,38 @@ const DialogBlock: React.FC<DialogBlockProps> = ({ dialog, onSpeakDialog }) => {
       viewport={{ once: true }}
       className="bg-white rounded-[2.5rem] border border-[#E5E5E0] overflow-hidden shadow-sm hover:shadow-md transition-shadow"
     >
-      <div className="bg-[#F8F8F5] p-5 md:px-8 flex items-center justify-between border-b border-[#E5E5E0]">
-        <span className="text-sm font-black text-[#5A5A40] opacity-60 flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#5A5A40]" />
+      <div className="bg-[#F8F8F5] p-5 md:px-8 flex items-center justify-between border-b border-[#E5E5E0] flex-wrap gap-4">
+        <span className="text-xl sm:text-2xl md:text-3xl font-black text-[#1A1A1A] opacity-90 flex items-center gap-2.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#5A5A40] shrink-0" />
           {dialog.title}
         </span>
         <div className="flex items-center gap-2">
           <button 
             onClick={() => onSpeakDialog(dialog.english)}
-            className="flex items-center gap-2 bg-white text-[#5A5A40] px-4 py-2 rounded-xl text-xs font-bold border border-[#E5E5E0] hover:bg-[#F0F0EB] transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-2 bg-white text-[#5A5A40] px-5 py-2.5 rounded-xl text-sm sm:text-base font-extrabold border border-[#E5E5E0] hover:bg-[#F0F0EB] transition-all shadow-sm active:scale-95"
           >
-            <Volume2 size={14} />
+            <Volume2 size={18} />
             Listen
           </button>
           {viewMode === 'dialog' && (
             <button 
               onClick={() => setShowKorean(!showKorean)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all shadow-sm active:scale-95 ${showKorean ? 'bg-[#5A5A40] text-white border-[#5A5A40]' : 'bg-white text-[#5A5A40] border-[#E5E5E0] hover:bg-[#F0F0EB]'}`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm sm:text-base font-extrabold border transition-all shadow-sm active:scale-95 ${showKorean ? 'bg-[#5A5A40] text-white border-[#5A5A40]' : 'bg-white text-[#5A5A40] border-[#E5E5E0] hover:bg-[#F0F0EB]'}`}
             >
-              <Languages size={14} />
+              <Languages size={18} />
               {showKorean ? 'Hide Translation' : 'Translate'}
             </button>
           )}
           <div className="bg-white p-1 rounded-2xl border border-[#E5E5E0] flex gap-1 ml-2">
             <button 
               onClick={() => setViewMode('dialog')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${viewMode === 'dialog' ? 'bg-[#1A1A1A] text-white shadow-lg' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
+              className={`px-5 py-2.5 rounded-xl text-sm sm:text-base font-black transition-all ${viewMode === 'dialog' ? 'bg-[#1A1A1A] text-white shadow-lg' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
             >
               Dialogue
             </button>
             <button 
               onClick={() => setViewMode('quiz')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${viewMode === 'quiz' ? 'bg-[#5A5A40] text-white shadow-lg' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
+              className={`px-5 py-2.5 rounded-xl text-sm sm:text-base font-black transition-all ${viewMode === 'quiz' ? 'bg-[#5A5A40] text-white shadow-lg' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
             >
               Quiz
             </button>
@@ -1392,12 +1391,12 @@ function GrammarSection() {
           transition={{ delay: id * 0.1 }}
           className="bg-white rounded-3xl border border-[#E5E5E0] overflow-hidden shadow-sm"
         >
-          <div className="bg-[#F8F8F5] px-6 py-4 flex items-center gap-3">
-            <div className="bg-emerald-500 w-2 h-6 rounded-full" />
-            <h4 className="text-lg font-bold">{item.title}</h4>
+          <div className="bg-[#F8F8F5] px-8 py-6 flex items-center gap-4">
+            <div className="bg-emerald-500 w-2.5 h-8 rounded-full" />
+            <h4 className="text-2xl sm:text-3xl font-black tracking-tight text-[#1A1A1A]">{item.title}</h4>
           </div>
-          <div className="p-8">
-            <p className="text-[#5A5A50] mb-8 leading-relaxed bg-[#F8F8F5] p-5 rounded-2xl text-base italic border-l-4 border-emerald-500/20 whitespace-pre-line">
+          <div className="p-8 pb-10">
+            <p className="text-[#3A3A30] mb-8 leading-relaxed bg-[#F8F8F5] p-6 rounded-2xl text-xl sm:text-2xl font-bold border-l-[6px] border-emerald-500 whitespace-pre-line">
               {item.explanation}
             </p>
             <div className="space-y-4">
@@ -1775,13 +1774,13 @@ function VerbsSection() {
       <div className="flex bg-[#F8F8F5] p-1.5 rounded-2xl mb-8 w-fit mx-auto border border-[#E5E5E0]">
         <button 
           onClick={() => { setSubTab('learn'); setQuizStarted(false); }}
-          className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
+          className={`px-8 py-2.5 rounded-xl font-bold text-base sm:text-lg transition-all ${subTab === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
         >
           학습하기
         </button>
         <button 
           onClick={() => { setSubTab('quiz'); setQuizStarted(false); }}
-          className={`px-8 py-2.5 rounded-xl font-bold text-sm transition-all ${subTab === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
+          className={`px-8 py-2.5 rounded-xl font-bold text-base sm:text-lg transition-all ${subTab === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
         >
           퀴즈풀기
         </button>
@@ -1798,10 +1797,10 @@ function VerbsSection() {
           >
             {/* Learn Onboarding Header */}
             <div className="bg-[#F8F8F5] border border-[#E5E5E0] p-6 rounded-2xl flex items-start gap-4">
-              <Info className="text-[#5A5A40] shrink-0 mt-1" size={20} />
+              <Info className="text-[#5A5A40] shrink-0 mt-1.5" size={24} />
               <div>
-                <h4 className="font-bold text-[#1A1A1A]">불규칙 동사 3단 변화 학습</h4>
-                <p className="text-sm text-[#6B6B60] leading-relaxed">
+                <h4 className="text-lg sm:text-xl font-extrabold text-[#1A1A1A] mb-1">불규칙 동사 3단 변화 학습</h4>
+                <p className="text-base sm:text-lg text-[#5A5A50] leading-relaxed font-medium">
                   동사 모양에 따른 4가지 유형 구분을 공부하고, 🔊 버튼을 눌러 정확한 원형-과거형-과거분사형 발음 훈련을 해보세요.
                 </p>
               </div>
@@ -1814,7 +1813,7 @@ function VerbsSection() {
                   <button
                     key={t}
                     onClick={() => setCategoryFilter(t)}
-                    className={`px-4 py-2 rounded-xl font-bold text-xs sm:text-sm border transition-all ${
+                    className={`px-5 py-2.5 rounded-xl font-bold text-sm sm:text-base border transition-all ${
                       categoryFilter === t
                         ? 'bg-[#5A5A40] text-white border-[#5A5A40] shadow-sm'
                         : 'bg-[#F8F8F5] text-[#8A8A80] border-[#E5E5E0] hover:border-[#8A8A80] hover:text-[#5A5A40]'
@@ -1857,7 +1856,7 @@ function VerbsSection() {
 
                     <div className="bg-white rounded-[2rem] border border-[#E5E5E0] overflow-hidden shadow-sm">
                       {/* Desktop Headings */}
-                      <div className="hidden md:grid grid-cols-12 gap-2 bg-[#F8F8F5] p-4 text-xs font-black text-[#8A8A80] border-b border-[#E5E5E0] uppercase tracking-widest text-center">
+                      <div className="hidden md:grid grid-cols-12 gap-2 bg-[#F8F8F5] p-5 text-sm sm:text-base font-black text-[#5A5A40] border-b border-[#E5E5E0] uppercase tracking-wider text-center">
                         <div className="col-span-1">#</div>
                         <div className="col-span-2 text-left">원형 (Base)</div>
                         <div className="col-span-2 text-left">과거형 (Past)</div>
@@ -1951,17 +1950,18 @@ function VerbsSection() {
               <Languages size={40} />
             </div>
             
-            <div className="max-w-md mx-auto space-y-3">
+            <div className="max-w-xl mx-auto space-y-3">
               <h3 className="text-2xl sm:text-3xl font-black text-[#1A1A1A]">불규칙 동사 3단 변화 퀴즈</h3>
-              <p className="text-[#6B6B61] text-xs sm:text-sm font-medium leading-relaxed">
-                불규칙 동사 60개의 원형-과거형-과거분사형 변형을 테스트합니다. 아래에서 원하는 출제 방식과 범위를 맞춤 설정해 보세요.
+              <p className="text-[#6B6B61] text-base sm:text-lg font-medium leading-relaxed break-keep">
+                <span className="block">불규칙 동사 60개의 원형-과거형-과거분사형 변형을 테스트합니다.</span>
+                <span className="block mt-1">아래에서 원하는 출제 방식과 범위를 맞춤 설정해 보세요.</span>
               </p>
             </div>
 
             {/* Range and Length settings */}
             <div className="max-w-2xl mx-auto rounded-3xl border border-[#E5E5E0] bg-white p-6 space-y-6 text-left shadow-sm">
               <div className="space-y-3">
-                <label className="text-sm font-black text-[#5A5A40] flex items-center gap-1.5">
+                <label className="text-base sm:text-lg font-black text-[#5A5A40] flex items-center gap-1.5">
                   <span className="w-1.5 h-3 rounded bg-indigo-500" />
                   출제 범위 설정 (Category Range)
                 </label>
@@ -1971,7 +1971,7 @@ function VerbsSection() {
                       setQuizRange('all');
                       setQuizLength(10);
                     }}
-                    className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all ${
+                    className={`px-4 py-2.5 rounded-xl text-sm sm:text-base font-bold border transition-all ${
                       quizRange === 'all'
                         ? 'bg-[#5A5A40] text-white border-[#5A5A40] shadow-sm'
                         : 'bg-[#F8F8F5] text-[#8A8A80] border-[#E5E5E0] hover:border-[#8A8A80] hover:text-[#5A5A40]'
@@ -1995,7 +1995,7 @@ function VerbsSection() {
                           setQuizLength(10);
                         }
                       }}
-                      className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all ${
+                      className={`px-4 py-2.5 rounded-xl text-sm sm:text-base font-bold border transition-all ${
                         quizRange === cfg.type
                           ? 'bg-[#5A5A40] text-white border-[#5A5A40] shadow-sm'
                           : 'bg-[#F8F8F5] text-[#8A8A80] border-[#E5E5E0] hover:border-[#8A8A80] hover:text-[#5A5A40]'
@@ -2008,7 +2008,7 @@ function VerbsSection() {
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-black text-[#5A5A40] flex items-center gap-1.5">
+                <label className="text-base sm:text-lg font-black text-[#5A5A40] flex items-center gap-1.5">
                   <span className="w-1.5 h-3 rounded bg-indigo-500" />
                   출제 문항 수 설정 (Quiz Length)
                 </label>
@@ -2025,7 +2025,7 @@ function VerbsSection() {
                       <button
                         key={val}
                         onClick={() => setQuizLength(val as any)}
-                        className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all ${
+                        className={`px-4 py-2.5 rounded-xl text-sm sm:text-base font-bold border transition-all ${
                           quizLength === val
                             ? 'bg-[#5A5A40] text-white border-[#5A5A40] shadow-sm'
                             : 'bg-[#F8F8F5] text-[#8A8A80] border-[#E5E5E0] hover:border-[#8A8A80] hover:text-[#5A5A40]'
@@ -2048,8 +2048,8 @@ function VerbsSection() {
                 <div className="w-10 h-10 rounded-xl bg-violet-50 text-[#8B5CF6] flex items-center justify-center font-bold mb-4 group-hover/btn:bg-[#8B5CF6] group-hover/btn:text-white transition-colors">
                   A
                 </div>
-                <h4 className="font-extrabold text-[#1A1A1A] text-base">객관식 퀴즈풀기</h4>
-                <p className="text-xs font-bold text-[#8A8A80] mt-1 leading-snug">
+                <h4 className="font-black text-[#1A1A1A] text-xl sm:text-2xl">객관식 퀴즈풀기</h4>
+                <p className="text-sm sm:text-base font-bold text-[#8A8A80] mt-2 leading-relaxed break-keep">
                   4개의 변형 형태 중 알맞은 과거형/과거분사형을 찾아 클릭합니다.
                 </p>
               </button>
@@ -2062,8 +2062,8 @@ function VerbsSection() {
                 <div className="w-10 h-10 rounded-xl bg-violet-50 text-[#8B5CF6] flex items-center justify-center font-bold mb-4 group-hover/btn:bg-[#8B5CF6] group-hover/btn:text-white transition-colors">
                   B
                 </div>
-                <h4 className="font-extrabold text-[#1A1A1A] text-base">주관식 직접 타이핑</h4>
-                <p className="text-xs font-bold text-[#8A8A80] mt-1 leading-snug">
+                <h4 className="font-black text-[#1A1A1A] text-xl sm:text-2xl">주관식 직접 타이핑</h4>
+                <p className="text-sm sm:text-base font-bold text-[#8A8A80] mt-2 leading-relaxed break-keep">
                   빈칸에 들어갈 과거형 또는 과거분사형 스펠링을 직접 타이핑하여 정확히 익힙니다.
                 </p>
               </button>
