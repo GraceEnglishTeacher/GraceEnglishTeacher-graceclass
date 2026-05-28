@@ -33,7 +33,24 @@ export const worksheetData: WorksheetData = {
     { word: "without", meaning: "~ 없이", example: "I can't live without water." },
     { word: "wooden", meaning: "나무로 된, 목재의", example: "I have a small wooden box." },
     { word: "make a mistake", meaning: "실수하다", example: "Don't be afraid to make a mistake." },
-    { word: "set up", meaning: "설치하다, 준비하다", example: "We need to set up the tent." }
+    { word: "set up", meaning: "설치하다, 준비하다", example: "We need to set up the tent." },
+    { word: "explosion", meaning: "폭발", example: "The sound of the explosion was very loud." },
+    { word: "fail", meaning: "실패하다; (수확이) 흉작이 들다", example: "Crops failed around the world because of the cold weather." },
+    { word: "surprisingly", meaning: "놀랍게도", example: "Surprisingly, this made traveling difficult." },
+    { word: "travel", meaning: "이동하다, 여행하다", example: "People needed a new way to travel." },
+    { word: "ride", meaning: "(자전거, 말 등을) 타다", example: "In those days, people rode horses." },
+    { word: "push", meaning: "밀다, 밀치다", example: "Riders simply pushed the bicycle forward." },
+    { word: "inventor", meaning: "발명가", example: "The bicycle is the result of work by many inventors." },
+    { word: "typist", meaning: "타자수, 타이피스트", example: "Graham was a bad typist, so she made many mistakes." },
+    { word: "painter", meaning: "페인트공, 화가, 도장공", example: "One day, Graham saw some window painters." },
+    { word: "simply", meaning: "단순히, 그냥", example: "They corrected it by simply painting over it." },
+    { word: "paint over", meaning: "위에 페인트를 칠하다, 덧칠하다", example: "She decided to paint over the typing mistakes." },
+    { word: "own", meaning: "자신만의, 독자적인", example: "The next day, she made her own white paint." },
+    { word: "coffee pot", meaning: "커피 포트, 커피 단지", example: "They made many trips to check the empty coffee pot." },
+    { word: "building", meaning: "건물, 빌딩", example: "There was only one coffee machine in the building." },
+    { word: "software", meaning: "소프트웨어", example: "They used special software to watch the coffee pot." },
+    { word: "local", meaning: "지역의, 국부적인", example: "The pictures were shared on their local network." },
+    { word: "in front of", meaning: "~의 앞에", example: "They set up a camera in front of the coffee machine." }
   ],
   listening: {
     functions: [
@@ -711,7 +728,24 @@ export const worksheetData: WorksheetData = {
     { id: "vq27", type: "short-answer", question: "'~ 없이'의 뜻을 가진 영단어를 쓰세요.", answer: "without" },
     { id: "vq28", type: "short-answer", question: "'나무로 된'의 뜻을 가진 영단어를 쓰세요.", answer: "wooden" },
     { id: "vq29", type: "short-answer", question: "'실수하다'의 뜻을 가진 영어 표현을 쓰세요.", answer: "make a mistake" },
-    { id: "vq30", type: "short-answer", question: "'설치하다'의 뜻을 가진 영어 표현을 쓰세요.", answer: "set up" }
+    { id: "vq30", type: "short-answer", question: "'설치하다'의 뜻을 가진 영어 표현을 쓰세요.", answer: "set up" },
+    { id: "vq31", type: "multiple-choice", question: "'explosion'의 한국어 뜻은?", options: ["폭발", "화재", "진동", "충돌"], answer: 0 },
+    { id: "vq32", type: "multiple-choice", question: "'fail'의 한국어 뜻은?", options: ["성공하다", "실패하다", "도전하다", "포기하다"], answer: 1 },
+    { id: "vq33", type: "multiple-choice", question: "'surprisingly'의 한국어 뜻은?", options: ["지루하게도", "일반적으로", "안타깝게도", "놀랍게도"], answer: 3 },
+    { id: "vq34", type: "short-answer", question: "'이동하다, 여행하다'의 뜻을 가진 영단어를 쓰세요.", answer: "travel" },
+    { id: "vq35", type: "short-answer", question: "'타다(말, 자전거 등)'의 뜻을 가진 영단어를 쓰세요.", answer: "ride" },
+    { id: "vq36", type: "short-answer", question: "'밀다'의 뜻을 가진 영단어를 쓰세요.", answer: "push" },
+    { id: "vq37", type: "short-answer", question: "'발명가'의 뜻을 가진 영단어를 쓰세요.", answer: "inventor" },
+    { id: "vq38", type: "multiple-choice", question: "'typist'의 한국어 뜻은?", options: ["기자", "소설가", "타자수", "개발자"], answer: 2 },
+    { id: "vq39", type: "multiple-choice", question: "'painter'의 한국어 뜻은?", options: ["페인트공, 화가", "목수", "요리사", "건축가"], answer: 0 },
+    { id: "vq40", type: "multiple-choice", question: "'simply'의 한국어 뜻은?", options: ["복잡하게", "단순히, 그저", "특별하게", "완벽하게"], answer: 1 },
+    { id: "vq41", type: "short-answer", question: "'위에 덧칠하다' 뜻을 가진 영어 표현을 쓰세요.", answer: "paint over" },
+    { id: "vq42", type: "short-answer", question: "'자신만의'의 뜻을 가진 영단어를 쓰세요.", answer: "own" },
+    { id: "vq43", type: "multiple-choice", question: "'coffee pot'의 한국어 뜻은?", options: ["커피 포트", "티백", "커피 잔", "커피 콩"], answer: 0 },
+    { id: "vq44", type: "multiple-choice", question: "'building'의 한국어 뜻은?", options: ["운동장", "공원", "도로", "건물"], answer: 3 },
+    { id: "vq45", type: "multiple-choice", question: "'software'의 한국어 뜻은?", options: ["하드웨어", "부품", "소프트웨어, 프로그램", "연결장치"], answer: 2 },
+    { id: "vq46", type: "short-answer", question: "'지역의, 로컬의'의 뜻을 가진 영단어를 쓰세요.", answer: "local" },
+    { id: "vq47", type: "short-answer", question: "'~의 앞에' 뜻을 가진 영어 표현을 쓰세요.", answer: "in front of" }
   ]
 };
 

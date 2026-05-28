@@ -15,14 +15,77 @@ import {
 import { worksheetData } from './data';
 import { QuizQuestion, VocabularyItem } from './types';
 import { irregularVerbCategories } from './verbData';
+import { pronounData, pronounQuiz } from './pronounData';
 
-type Tab = 'vocabulary' | 'listening' | 'grammar' | 'reading' | 'verbs';
+const getVocabularyItemByQuizQuestion = (q: QuizQuestion): VocabularyItem | undefined => {
+  if (q.type === 'multiple-choice') {
+    const match = q.question.match(/'([^']+)'/);
+    if (match) {
+      const matchWord = match[1];
+      return worksheetData.vocabulary.find(v => v.word === matchWord);
+    }
+  } else {
+    // Check if the answer is inside the question or if we can match any vocabulary word
+    const match = q.question.match(/'([^']+)'/);
+    if (match) {
+      const matchWord = match[1];
+      return worksheetData.vocabulary.find(v => v.word === matchWord);
+    }
+    const matchWord = String(q.answer).toLowerCase().trim();
+    const exactMatch = worksheetData.vocabulary.find(v => v.word.toLowerCase().trim() === matchWord);
+    if (exactMatch) return exactMatch;
+    
+    // Fallback: search if any vocabulary key is inside the question
+    return worksheetData.vocabulary.find(v => q.question.includes(v.word));
+  }
+  return undefined;
+};
+
+const getVocabularyByStory = (storyId: string): VocabularyItem[] => {
+  if (storyId === 'rd1') {
+    const words = [
+      "volcano", "explode", "huge", "ash", "crop", "result", "century", "wooden", "wheel", "pedal", "without", "forward", "present-day",
+      "explosion", "fail", "surprisingly", "travel", "ride", "push", "inventor"
+    ];
+    return worksheetData.vocabulary.filter(v => words.includes(v.word));
+  } else if (storyId === 'rd2') {
+    const words = [
+      "whiteout", "invent", "invention", "whole", "make a mistake", "solution", "correct", "notice", "necessity",
+      "typist", "painter", "simply", "paint over", "own"
+    ];
+    return worksheetData.vocabulary.filter(v => words.includes(v.word));
+  } else if (storyId === 'rd3') {
+    const words = [
+      "pot", "lab", "trip", "disappointing", "empty", "researcher", "set up", "network",
+      "coffee pot", "building", "software", "local", "in front of"
+    ];
+    return worksheetData.vocabulary.filter(v => words.includes(v.word));
+  } else if (storyId === 'all') {
+    return worksheetData.vocabulary;
+  }
+  return [];
+};
+
+const getVocabularyQuizByStory = (storyId: string): QuizQuestion[] => {
+  if (storyId === 'all') {
+    return worksheetData.vocabularyQuiz;
+  }
+  const storyVocab = getVocabularyByStory(storyId);
+  const storyWords = storyVocab.map(v => v.word.toLowerCase().trim());
+  return worksheetData.vocabularyQuiz.filter(q => {
+    const vocabItem = getVocabularyItemByQuizQuestion(q);
+    return vocabItem && storyWords.includes(vocabItem.word.toLowerCase().trim());
+  });
+};
+
+type Tab = 'vocabulary' | 'listening' | 'grammar' | 'reading' | 'verbs' | 'pronouns';
 type SubTab = 'learn' | 'quiz' | 'review';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('learn');
   const [missedWords, setMissedWords] = useState<VocabularyItem[]>([]);
+  const [activeVocabStoryIdx, setActiveVocabStoryIdx] = useState(0);
   
   const getVoice = useCallback((speaker?: 'G' | 'B' | 'A') => {
     const voices = window.speechSynthesis.getVoices();
@@ -136,12 +199,14 @@ export default function App() {
       isCorrect = userAnswer === correctAnswer;
     }
 
-    if (quizId === 'vocabulary' && !isCorrect) {
-      const missedWord = worksheetData.vocabulary[state.currentQuestionIndex];
-      setMissedWords(prev => {
-        if (prev.find(w => w.word === missedWord.word)) return prev;
-        return [...prev, missedWord];
-      });
+    if (quizId.startsWith('vocabulary') && !isCorrect) {
+      const missedWord = getVocabularyItemByQuizQuestion(question);
+      if (missedWord) {
+        setMissedWords(prev => {
+          if (prev.find(w => w.word === missedWord.word)) return prev;
+          return [...prev, missedWord];
+        });
+      }
     }
     
     setQuizStates(prev => {
@@ -257,7 +322,7 @@ export default function App() {
               <MenuCard 
                 title="Voca Master" 
                 subtitle="Vocabulary"
-                description="30개의 필수 단어 발음을 듣고 퀴즈로 확인합니다."
+                description="Reading Master의 교과서 스토리별 핵심 어휘와 추가 단어를 공부하고, 발음 듣기와 퀴즈로 완전히 마스터합니다."
                 icon={<Languages className="text-amber-500" />}
                 onClick={() => selectTab('vocabulary')}
                 color="amber"
@@ -294,6 +359,14 @@ export default function App() {
                 onClick={() => selectTab('verbs')}
                 color="violet"
               />
+              <MenuCard 
+                title="Pronoun Master" 
+                subtitle="Pronoun Declension"
+                description="주격, 소유격, 목적격, 소유대명사, 재귀대명사 5대 격변화 표를 외우고 퀴즈로 점검합니다."
+                icon={<Info className="text-sky-500" />}
+                onClick={() => selectTab('pronouns')}
+                color="sky"
+              />
             </motion.div>
           ) : (
             <motion.div 
@@ -306,21 +379,109 @@ export default function App() {
               <SectionHeader tab={activeTab} />
               
               {activeTab === 'vocabulary' && (
-                <>
+                <div className="space-y-8">
+                  {/* Detailed Korean Instruction Block */}
+                  <div className="bg-amber-50/40 p-8 rounded-3xl border border-amber-100 flex gap-4">
+                    <span className="text-3xl shrink-0">💡</span>
+                    <div className="space-y-2">
+                      <h4 className="font-extrabold text-[#1F2937] text-lg sm:text-xl">스토리별 핵심 어휘 학습 가이드</h4>
+                      <p className="text-gray-600 text-sm sm:text-base leading-relaxed break-keep">
+                        <b>Reading Master</b>에 등장하는 재미있는 3가지 본문 이야기에서 꼭 알아야 할 필수 단어와 표현들을 모두 모았습니다!
+                        원어민 발음 및 고품질 예문과 함게 효과적으로 어휘를 익혀보세요.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 text-xs font-semibold text-[#5A5A40]">
+                        <div className="bg-white p-3 rounded-xl border border-amber-100/50"><b>1단계 학습</b>: 단어 사운드를 클릭하여 발음과 예문 소리를 들어보세요.</div>
+                        <div className="bg-white p-3 rounded-xl border border-amber-100/50"><b>2단계 퀴즈</b>: 객관식 또는 서술형 퀴즈로 완전히 내 것으로 만드세요.</div>
+                        <div className="bg-white p-3 rounded-xl border border-amber-100/50"><b>3단계 복습</b>: 틀린 단어는 오답 노트를 통해 다시 확인할 수 있습니다.</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Story Select Cards for Vocabulary */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {worksheetData.reading.map((item, idx) => (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setActiveVocabStoryIdx(idx);
+                        }}
+                        className={`p-6 rounded-2xl text-left border-2 transition-all flex items-center group h-28 ${
+                          activeVocabStoryIdx === idx
+                            ? 'border-amber-500 bg-amber-50/20 shadow-md scale-[1.01]'
+                            : 'border-[#E5E5E0] bg-white hover:border-amber-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-4 w-full">
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0 ${
+                            activeVocabStoryIdx === idx ? 'bg-amber-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
+                          }`}>
+                            {idx + 1}
+                          </span>
+                          <div className="flex flex-col leading-tight min-w-0">
+                            <span className="font-black text-xl sm:text-2xl tracking-tight text-[#1A1A1A] break-keep group-hover:text-amber-600 transition-colors">
+                              {item.title.replace(/\([^)]*\)/g, '').trim()}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => {
+                        setActiveVocabStoryIdx(3);
+                      }}
+                      className={`p-6 rounded-2xl text-left border-2 transition-all flex items-center group h-28 ${
+                        activeVocabStoryIdx === 3
+                          ? 'border-amber-500 bg-amber-50/20 shadow-md scale-[1.01]'
+                          : 'border-[#E5E5E0] bg-white hover:border-amber-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4 w-full">
+                        <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0 ${
+                          activeVocabStoryIdx === 3 ? 'bg-amber-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
+                        }`}>
+                          전체
+                        </span>
+                        <div className="flex flex-col leading-tight min-w-0">
+                          <span className="font-black text-xl sm:text-2xl tracking-tight text-[#1A1A1A] break-keep group-hover:text-amber-600 transition-colors">
+                            전체 어휘
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+
                   <TabSwitcher active={activeSubTab} onChange={setActiveSubTab} showReview={missedWords.length > 0} hideLearn={activeSubTab === 'quiz'} />
+                  
                   {activeSubTab === 'learn' ? (
-                    <VocabularySection onSpeak={speak} />
-                  ) : activeSubTab === 'quiz' ? (
-                    <QuizSection 
-                      questions={worksheetData.vocabularyQuiz}
-                      state={quizStates.vocabulary} 
-                      handleAnswer={(ans: any) => handleAnswer('vocabulary', worksheetData.vocabularyQuiz, ans)} 
-                      onReset={() => resetQuiz('vocabulary', worksheetData.vocabularyQuiz.length)}
+                    <VocabularySection 
+                      onSpeak={speak} 
+                      words={getVocabularyByStory(activeVocabStoryIdx === 3 ? 'all' : worksheetData.reading[activeVocabStoryIdx].id)} 
                     />
+                  ) : activeSubTab === 'quiz' ? (
+                    (() => {
+                      const storyId = activeVocabStoryIdx === 3 ? 'all' : worksheetData.reading[activeVocabStoryIdx].id;
+                      const quizId = `vocabulary_${storyId}`;
+                      const storyQuestions = getVocabularyQuizByStory(storyId);
+                      const state = quizStates[quizId] || {
+                        currentQuestionIndex: 0,
+                        score: 0,
+                        isFinished: false,
+                        userAnswers: Array(storyQuestions.length).fill(null),
+                        feedback: null
+                      };
+                      return (
+                        <QuizSection 
+                          questions={storyQuestions}
+                          state={state} 
+                          handleAnswer={(ans: any) => handleAnswer(quizId, storyQuestions, ans)} 
+                          onReset={() => resetQuiz(quizId, storyQuestions.length)}
+                        />
+                      );
+                    })()
                   ) : (
                     <ReviewSection words={missedWords} />
                   )}
-                </>
+                </div>
               )}
 
               {activeTab === 'listening' && (
@@ -361,6 +522,15 @@ export default function App() {
 
               {activeTab === 'verbs' && (
                 <VerbsSection />
+              )}
+
+              {activeTab === 'pronouns' && (
+                <PronounSection 
+                  onSpeak={speak}
+                  quizStates={quizStates}
+                  handleAnswer={handleAnswer}
+                  resetQuiz={resetQuiz}
+                />
               )}
             </motion.div>
           )}
@@ -926,6 +1096,7 @@ function MenuCard({ title, subtitle, description, icon, onClick, color, classNam
     emerald: 'hover:border-emerald-200 hover:bg-emerald-50/30',
     rose: 'hover:border-rose-200 hover:bg-rose-50/30',
     violet: 'hover:border-violet-200 hover:bg-violet-50/30',
+    sky: 'hover:border-sky-200 hover:bg-sky-50/30',
   };
 
   return (
@@ -988,6 +1159,7 @@ function SectionHeader({ tab }: { tab: Tab }) {
     'grammar': { main: 'Grammar Master', sub: 'Grammar' },
     'reading': { main: 'Reading Master', sub: 'Reading' },
     'verbs': { main: 'Verbs Master', sub: 'Irregular Verbs (불규칙동사)' },
+    'pronouns': { main: 'Pronoun Master', sub: 'Pronoun Declension' },
   };
 
   return (
@@ -1058,10 +1230,10 @@ function TextSection({ title, english, korean, onSpeak }: { title: string, engli
   );
 }
 
-function VocabularySection({ onSpeak }: { onSpeak: (text: string) => void }) {
+function VocabularySection({ onSpeak, words }: { onSpeak: (text: string) => void, words: VocabularyItem[] }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {worksheetData.vocabulary.map((item, id) => (
+      {words.map((item, id) => (
         <motion.div 
           key={item.word}
           initial={{ opacity: 0, y: 10 }}
@@ -1473,7 +1645,7 @@ function QuizSection({ questions, state, handleAnswer, onReset }: any) {
                         <span className={`text-xs font-black px-2 py-0.5 rounded-full ${isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
                           Q{idx + 1}
                         </span>
-                        <p className="font-bold text-[#1A1A1A]">{q.question}</p>
+                        <p className="font-bold text-[#1A1A1A] whitespace-pre-line">{q.question}</p>
                       </div>
                       <div className="flex items-center gap-4 mt-2">
                         <p className="text-sm font-medium text-[#6B6B6B]">
@@ -1521,7 +1693,7 @@ function QuizSection({ questions, state, handleAnswer, onReset }: any) {
         <div className="absolute top-0 right-0 p-4 opacity-5">
            <HelpCircle size={80} />
         </div>
-        <h4 className="text-2xl font-bold text-[#1A1A1A] leading-relaxed relative z-10">
+        <h4 className="text-2xl font-bold text-[#1A1A1A] leading-relaxed relative z-10 whitespace-pre-line">
           {currentQuestion.question}
         </h4>
       </div>
@@ -1593,6 +1765,612 @@ function QuizSection({ questions, state, handleAnswer, onReset }: any) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function PronounSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: any) {
+  const [subTab, setSubTab] = useState<'learn' | 'table-quiz' | 'quiz'>('learn');
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+
+  // Table Quiz States
+  const [tableQuizStarted, setTableQuizStarted] = useState(false);
+  const [tableDifficulty, setTableDifficulty] = useState<'easy' | 'normal' | 'hard' | 'all'>('normal');
+  const [tableBlanks, setTableBlanks] = useState<string[]>([]); // `${row.id}_${field}`
+  const [tableInputs, setTableInputs] = useState<Record<string, string>>({});
+  const [tableSubmitted, setTableSubmitted] = useState(false);
+  const [tableScore, setTableScore] = useState({ correct: 0, total: 0 });
+
+  const quizId = 'pronouns';
+  const quizState = quizStates[quizId] || {
+    currentQuestionIndex: 0,
+    score: 0,
+    isFinished: false,
+    userAnswers: Array(pronounQuiz.length).fill(null),
+    feedback: null
+  };
+
+  const handleCellClick = (word: string) => {
+    if (word && word !== '-') {
+      onSpeak(word);
+    }
+  };
+
+  // Start new Interactive Table Quiz
+  const startTableQuiz = (difficultySetting: typeof tableDifficulty) => {
+    setTableDifficulty(difficultySetting);
+    setTableSubmitted(false);
+    setTableInputs({});
+    
+    const possibleKeys: string[] = [];
+    const fields = ['subjective', 'possessive', 'objective', 'possessivePronoun', 'reflexive'] as const;
+    
+    pronounData.forEach(row => {
+      fields.forEach(field => {
+        // Skip '-' which has no pronoun equivalent
+        if (field === 'possessivePronoun' && row.possessivePronoun === '-') {
+          return;
+        }
+        possibleKeys.push(`${row.id}_${field}`);
+      });
+    });
+
+    // Shuffle and pick
+    const shuffled = [...possibleKeys].sort(() => Math.random() - 0.5);
+    let count = 16; // default normal
+    if (difficultySetting === 'easy') count = 8;
+    else if (difficultySetting === 'normal') count = 16;
+    else if (difficultySetting === 'hard') count = 28;
+    else if (difficultySetting === 'all') count = possibleKeys.length;
+
+    const chosenBlanks = shuffled.slice(0, count);
+    setTableBlanks(chosenBlanks);
+    setTableQuizStarted(true);
+  };
+
+  const submitTableQuiz = () => {
+    let correctCount = 0;
+    const fields = ['subjective', 'possessive', 'objective', 'possessivePronoun', 'reflexive'] as const;
+
+    pronounData.forEach(row => {
+      fields.forEach(field => {
+        const key = `${row.id}_${field}`;
+        if (tableBlanks.includes(key)) {
+          const userVal = (tableInputs[key] || '').trim().toLowerCase();
+          const targetVal = row[field].trim().toLowerCase();
+          if (userVal === targetVal) {
+            correctCount++;
+          }
+        }
+      });
+    });
+
+    setTableScore({ correct: correctCount, total: tableBlanks.length });
+    setTableSubmitted(true);
+  };
+
+  const filledCount = tableBlanks.filter(key => (tableInputs[key] || '').trim()).length;
+
+  return (
+    <div className="space-y-10">
+      {/* Subtab Switcher */}
+      <div className="flex justify-center bg-[#F1F1EB] p-1.5 rounded-2xl max-w-lg mx-auto">
+        <button
+          onClick={() => { setSubTab('learn'); }}
+          className={`flex-1 py-3 px-1 text-center font-bold text-sm sm:text-base rounded-xl transition-all ${
+            subTab === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'
+          }`}
+        >
+          격변화 표 학습
+        </button>
+        <button
+          onClick={() => { setSubTab('table-quiz'); }}
+          className={`flex-1 py-3 px-1 text-center font-bold text-sm sm:text-base rounded-xl transition-all ${
+            subTab === 'table-quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'
+          }`}
+        >
+          표 빈칸 채우기 퀴즈
+        </button>
+        <button
+          onClick={() => { setSubTab('quiz'); }}
+          className={`flex-1 py-3 px-1 text-center font-bold text-sm sm:text-base rounded-xl transition-all ${
+            subTab === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'
+          }`}
+        >
+          문장 활용 퀴즈
+        </button>
+      </div>
+
+      {subTab === 'learn' && (
+        <div className="space-y-12">
+          {/* Explanation Block */}
+          <div className="bg-sky-50/40 p-8 rounded-3xl border border-sky-100 flex gap-4">
+            <span className="text-3xl shrink-0">💡</span>
+            <div className="space-y-2">
+              <h4 className="font-extrabold text-[#1F2937] text-lg sm:text-xl">대명사 격변화란?</h4>
+              <p className="text-gray-600 text-sm sm:text-base leading-relaxed break-keep">
+                인칭대명사는 문장 안에서 쓰이는 <b>역할(격)</b>에 따라 모양이 달라져요! 
+                각 칸을 눌러 <b>🔊 발음을 듣거나</b> 하단의 플래시 카드로 단어를 하나씩 완전히 익혀 보세요.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 mt-4 text-xs font-semibold text-[#5A5A40]">
+                <div className="bg-white p-3 rounded-xl border border-sky-100/50"><b>주격</b>: ~은/는/이/가 (주어 역할)</div>
+                <div className="bg-white p-3 rounded-xl border border-sky-100/50"><b>소유격</b>: ~의 (명사 앞 수식)</div>
+                <div className="bg-white p-3 rounded-xl border border-sky-100/50"><b>목적격</b>: ~을/를/에게 (목적어 역할)</div>
+                <div className="bg-white p-3 rounded-xl border border-sky-100/50"><b>소유대명사</b>: ~의 것 (소유격+명사)</div>
+                <div className="bg-white p-3 rounded-xl border border-sky-100/50"><b>재귀대명사</b>: ~ 자신 (행위자 본인)</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Table Grid */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold text-[#1A1A1A] flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-sky-500 rounded-full inline-block"></span>
+              인칭대명사 격변화 표 (Pronoun Declension Table)
+            </h3>
+            <div className="overflow-x-auto rounded-2xl border border-[#E5E5E0] bg-white shadow-sm">
+              <table className="w-full min-w-[700px] text-center border-collapse text-sm sm:text-base">
+                <thead>
+                  <tr className="bg-[#F8F8F5] border-b border-[#E5E5E0] text-[#5A5A40] font-black h-14">
+                    <th className="px-4 py-3 text-left pl-6">구분 (인칭 및 수)</th>
+                    <th className="px-4 py-3">주격 (~은/는)</th>
+                    <th className="px-4 py-3">소유격 (~의)</th>
+                    <th className="px-4 py-3">목적격 (~을/를)</th>
+                    <th className="px-4 py-3">소유대명사 (~의 것)</th>
+                    <th className="px-4 py-3">재귀대명사 (~ 자신)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#F0F0EB]">
+                  {pronounData.map((row) => (
+                    <tr key={row.id} className="hover:bg-sky-50/10 transition-colors h-16">
+                      <td className="px-4 py-3 text-left pl-6 font-extrabold text-[#5A5A40]">
+                        {row.person}
+                      </td>
+                      {/* Subjective */}
+                      <td className="p-1">
+                        <button
+                          onClick={() => handleCellClick(row.subjective)}
+                          className="w-full h-full py-2.5 px-2 rounded-xl hover:bg-sky-50 hover:text-sky-700 font-bold transition-all flex flex-col items-center justify-center gap-0.5 group focus:outline-none"
+                        >
+                          <span className="text-base sm:text-lg text-gray-900 group-hover:text-sky-600 flex items-center gap-1 justify-center">
+                            {row.subjective}
+                            <Volume2 size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-sky-500 shrink-0" />
+                          </span>
+                          <span className="text-[11px] text-[#8A8A80] font-medium leading-none">{row.subjectiveMeaning}</span>
+                        </button>
+                      </td>
+                      {/* Possessive */}
+                      <td className="p-1">
+                        <button
+                          onClick={() => handleCellClick(row.possessive)}
+                          className="w-full h-full py-2.5 px-2 rounded-xl hover:bg-sky-50 hover:text-sky-700 font-bold transition-all flex flex-col items-center justify-center gap-0.5 group focus:outline-none"
+                        >
+                          <span className="text-base sm:text-lg text-gray-900 group-hover:text-sky-600 flex items-center gap-1 justify-center">
+                            {row.possessive}
+                            <Volume2 size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-sky-500 shrink-0" />
+                          </span>
+                          <span className="text-[11px] text-[#8A8A80] font-medium leading-none">{row.possessiveMeaning}</span>
+                        </button>
+                      </td>
+                      {/* Objective */}
+                      <td className="p-1">
+                        <button
+                          onClick={() => handleCellClick(row.objective)}
+                          className="w-full h-full py-2.5 px-2 rounded-xl hover:bg-sky-50 hover:text-sky-700 font-bold transition-all flex flex-col items-center justify-center gap-0.5 group focus:outline-none"
+                        >
+                          <span className="text-base sm:text-lg text-gray-900 group-hover:text-sky-600 flex items-center gap-1 justify-center">
+                            {row.objective}
+                            <Volume2 size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-sky-500 shrink-0" />
+                          </span>
+                          <span className="text-[11px] text-[#8A8A80] font-medium leading-none">{row.objectiveMeaning}</span>
+                        </button>
+                      </td>
+                      {/* Possessive Pronoun */}
+                      <td className="p-1">
+                        <button
+                          onClick={() => handleCellClick(row.possessivePronoun)}
+                          disabled={row.possessivePronoun === '-'}
+                          className="w-full h-full py-2.5 px-2 rounded-xl hover:bg-sky-50 hover:text-sky-700 font-bold transition-all flex flex-col items-center justify-center gap-0.5 group focus:outline-none disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+                        >
+                          <span className="text-base sm:text-lg text-gray-900 group-hover:text-sky-600 flex items-center gap-1 justify-center">
+                            {row.possessivePronoun}
+                            {row.possessivePronoun !== '-' && (
+                              <Volume2 size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-sky-500 shrink-0" />
+                            )}
+                          </span>
+                          <span className="text-[11px] text-[#8A8A80] font-medium leading-none">{row.possessivePronounMeaning}</span>
+                        </button>
+                      </td>
+                      {/* Reflexive */}
+                      <td className="p-1">
+                        <button
+                          onClick={() => handleCellClick(row.reflexive)}
+                          className="w-full h-full py-2.5 px-2 rounded-xl hover:bg-sky-50 hover:text-sky-700 font-bold transition-all flex flex-col items-center justify-center gap-0.5 group focus:outline-none"
+                        >
+                          <span className="text-base sm:text-lg text-gray-900 group-hover:text-sky-600 flex items-center gap-1 justify-center">
+                            {row.reflexive}
+                            <Volume2 size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-sky-500 shrink-0" />
+                          </span>
+                          <span className="text-[11px] text-[#8A8A80] font-medium leading-none">{row.reflexiveMeaning}</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Q&A / Tip box explaining why 'it' lacks a possessive pronoun */}
+            <div className="bg-[#FFFBEB] border border-amber-200/60 rounded-2xl p-5 flex gap-4 text-xs sm:text-sm text-amber-800 leading-relaxed max-w-4xl mx-auto shadow-sm">
+              <span className="text-2xl mt-0.5 shrink-0">🧐</span>
+              <div className="space-y-1">
+                <strong className="font-extrabold text-[#92400E] text-sm sm:text-base block">Q. 그것(it)의 소유대명사(~의 것) 칸이 비어있는(없음) 이유는 무엇일까요?</strong>
+                <p className="text-[#92400E]/90 break-keep">
+                  사물을 나타내는 대명사 <code className="bg-amber-100/80 px-1.5 py-0.5 rounded font-mono text-amber-900 font-bold">it</code>은 소유격 <code className="bg-amber-100/80 px-1.5 py-0.5 rounded font-mono text-amber-900 font-bold">its</code>(그것의)를 가지지만, <span className="underline decoration-wavy underline-offset-4 decoration-amber-500 font-bold">소유대명사('그것의 것'을 뜻하는 its)는 현대 영어에서 사용하지 않습니다.</span>
+                </p>
+                <p className="text-[#92400E]/80 mt-1 break-keep text-[11px] sm:text-xs">
+                  1. <b>소유 개념의 부자연스러움</b>: 무생물이나 사물이 또 다른 물건을 스스로 '소유'하여 "그것의 것"이라고 단독 지칭하는 표현이 개념적으로 거의 불 필요하기 때문입니다.<br />
+                  2. <b>형태적 혼동 유발</b>: 모양이 소유격 <code className="font-mono font-bold">its</code>와 완전히 똑같아 문장 구성 시 크나큰 논리적 모호함을 주기 때문에 학습 표와 실제 어법상에서는 "존재하지 않음"으로 다룹니다.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Flashcards Slidable Block */}
+          <div className="space-y-4 pt-10 border-t border-[#F0F0EB]">
+            <h3 className="text-xl font-bold text-[#1A1A1A] flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-amber-500 rounded-full inline-block"></span>
+              인칭별 집중 플래시 카드 (Interactive Flashcards)
+            </h3>
+            
+            <div className="max-w-md mx-auto bg-amber-50/20 rounded-3xl border-2 border-dashed border-amber-200 p-8 flex flex-col items-center space-y-6">
+              <div className="w-full flex justify-between items-center text-xs font-black text-[#5A5A40]">
+                <span>카테고리: {pronounData[currentCardIndex].person}</span>
+                <span>{currentCardIndex + 1} / {pronounData.length}</span>
+              </div>
+
+              {/* Large Card Box */}
+              <motion.div 
+                key={currentCardIndex}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-full bg-white rounded-2xl border-2 border-[#E5E5E0] shadow-sm p-6 flex flex-col space-y-5 min-h-[240px] justify-center items-center"
+              >
+                <div className="text-center w-full">
+                  <span className="text-base text-[#5A5A40] font-bold block mb-3">{pronounData[currentCardIndex].person}의 격변화 단어</span>
+                  <div className="flex flex-wrap justify-center gap-2 mb-4">
+                    <button 
+                      onClick={() => onSpeak(pronounData[currentCardIndex].subjective)}
+                      className="px-3 py-1.5 bg-sky-50 rounded-lg text-sky-700 font-bold hover:bg-sky-100 text-xs flex items-center gap-1 shadow-sm transition-all"
+                    >
+                      {pronounData[currentCardIndex].subjective} (주) <Volume2 size={11} />
+                    </button>
+                    <button 
+                      onClick={() => onSpeak(pronounData[currentCardIndex].possessive)}
+                      className="px-3 py-1.5 bg-[#F0FDF4] rounded-lg text-emerald-700 font-bold hover:bg-green-100 text-xs flex items-center gap-1 shadow-sm transition-all"
+                    >
+                      {pronounData[currentCardIndex].possessive} (소) <Volume2 size={11} />
+                    </button>
+                    <button 
+                      onClick={() => onSpeak(pronounData[currentCardIndex].objective)}
+                      className="px-3 py-1.5 bg-[#FEF2F2] rounded-lg text-rose-700 font-bold hover:bg-rose-100 text-xs flex items-center gap-1 shadow-sm transition-all"
+                    >
+                      {pronounData[currentCardIndex].objective} (목) <Volume2 size={11} />
+                    </button>
+                    {pronounData[currentCardIndex].possessivePronoun !== '-' && (
+                      <button 
+                        onClick={() => onSpeak(pronounData[currentCardIndex].possessivePronoun)}
+                        className="px-3 py-1.5 bg-[#FDF4FF] rounded-lg text-purple-700 font-bold hover:bg-purple-100 text-xs flex items-center gap-1 shadow-sm transition-all"
+                      >
+                        {pronounData[currentCardIndex].possessivePronoun} (소대) <Volume2 size={11} />
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => onSpeak(pronounData[currentCardIndex].reflexive)}
+                      className="px-3 py-1.5 bg-amber-50 rounded-lg text-amber-700 font-bold hover:bg-amber-100 text-xs flex items-center gap-1 shadow-sm transition-all"
+                    >
+                      {pronounData[currentCardIndex].reflexive} (재) <Volume2 size={11} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="w-full text-center border-t border-[#F0F0EB] pt-4 grid grid-cols-5 gap-1 text-[11px] font-semibold text-gray-500">
+                  <div>
+                    <span className="block text-gray-400 mb-1">주격</span>
+                    <span className="font-extrabold text-[#1A1A1A] text-sm block mb-1">{pronounData[currentCardIndex].subjective}</span>
+                    <span className="block text-[10px] text-[#8A8A80] leading-none">{pronounData[currentCardIndex].subjectiveMeaning}</span>
+                  </div>
+                  <div>
+                    <span className="block text-gray-400 mb-1">소유격</span>
+                    <span className="font-extrabold text-[#1A1A1A] text-sm block mb-1">{pronounData[currentCardIndex].possessive}</span>
+                    <span className="block text-[10px] text-[#8A8A80] leading-none">{pronounData[currentCardIndex].possessiveMeaning}</span>
+                  </div>
+                  <div>
+                    <span className="block text-gray-400 mb-1">목적격</span>
+                    <span className="font-extrabold text-[#1A1A1A] text-sm block mb-1">{pronounData[currentCardIndex].objective}</span>
+                    <span className="block text-[10px] text-[#8A8A80] leading-none">{pronounData[currentCardIndex].objectiveMeaning}</span>
+                  </div>
+                  <div>
+                    <span className="block text-gray-400 mb-1">소유대명</span>
+                    <span className="font-extrabold text-[#1A1A1A] text-sm block mb-1">{pronounData[currentCardIndex].possessivePronoun}</span>
+                    <span className="block text-[10px] text-[#8A8A80] leading-none">{pronounData[currentCardIndex].possessivePronounMeaning}</span>
+                  </div>
+                  <div>
+                    <span className="block text-gray-400 mb-1">재귀대명</span>
+                    <span className="font-extrabold text-[#1A1A1A] text-sm block mb-1">{pronounData[currentCardIndex].reflexive}</span>
+                    <span className="block text-[10px] text-[#8A8A80] leading-none">{pronounData[currentCardIndex].reflexiveMeaning}</span>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Slider Controls */}
+              <div className="flex gap-4 items-center w-full">
+                <button
+                  disabled={currentCardIndex === 0}
+                  onClick={() => setCurrentCardIndex(prev => prev - 1)}
+                  className="flex-1 bg-white py-3 border border-[#E5E5E0] rounded-xl font-bold flex items-center justify-center hover:bg-[#F8F8F5] transition-all disabled:opacity-40 shadow-sm"
+                >
+                  ◀ 이전 카드
+                </button>
+                <button
+                  disabled={currentCardIndex === pronounData.length - 1}
+                  onClick={() => setCurrentCardIndex(prev => prev + 1)}
+                  className="flex-1 bg-white py-3 border border-[#E5E5E0] rounded-xl font-bold flex items-center justify-center hover:bg-[#F8F8F5] transition-all disabled:opacity-40 shadow-sm"
+                >
+                  다음 카드 ▶
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {subTab === 'table-quiz' && (
+        <div className="space-y-8">
+          {!tableQuizStarted ? (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-[2rem] border border-[#E5E5E0] shadow-sm p-8 sm:p-10 max-w-2xl mx-auto text-center space-y-8 animate-fade-in"
+            >
+              <div className="bg-sky-50 w-20 h-20 rounded-[1.5rem] flex items-center justify-center mx-auto text-sky-500 [&_svg]:w-10 [&_svg]:h-10">
+                <BookOpen />
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-2xl sm:text-3xl font-black text-[#1A1A1A]">대명사 격변화 표 빈칸 채우기 퀴즈</h3>
+                <p className="text-gray-500 text-sm sm:text-base leading-relaxed break-keep max-w-lg mx-auto">
+                  영어 대명사의 주격, 소유격, 목적격, 소유대명사, 재귀대명사 표에 불이 켜집니다! 원하는 난이도를 선택하면 해당하는 수만큼의 무작위 빈칸이 생성되며, 이를 직접 자판으로 타이핑하여 완성도 높은 복습을 해봅니다.
+                </p>
+              </div>
+
+              {/* Select difficulty block */}
+              <div className="space-y-4">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">학습 난이도 선택 (Select Difficulty)</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-xl mx-auto">
+                  {[
+                    { id: 'easy', label: '초급 (Easy)', labelSub: '빈칸 8개', style: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-emerald-800' },
+                    { id: 'normal', label: '중급 (Normal)', labelSub: '빈칸 16개', style: 'bg-sky-50 hover:bg-sky-100 border-sky-200 text-sky-800' },
+                    { id: 'hard', label: '고급 (Hard)', labelSub: '빈칸 28개', style: 'bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-800' },
+                    { id: 'all', label: '마스터 (Master)', labelSub: '전체 (39개)', style: 'bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-800' }
+                  ].map(diff => (
+                    <button
+                      key={diff.id}
+                      onClick={() => startTableQuiz(diff.id as any)}
+                      className={`p-4 rounded-xl border-2 font-black transition-all cursor-pointer flex flex-col items-center justify-center text-center shadow-sm hover:scale-[1.02] active:scale-95 ${diff.style}`}
+                    >
+                      <span className="text-sm sm:text-base">{diff.label}</span>
+                      <span className="text-[11px] opacity-80 font-semibold mt-1">{diff.labelSub}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-8"
+            >
+              {/* Header Status Bar */}
+              <div className="bg-white p-6 rounded-[1.5rem] border border-[#E5E5E0] shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 rounded-full font-black text-xs uppercase tracking-wider ${
+                    tableDifficulty === 'easy' ? 'bg-emerald-100 text-emerald-800' :
+                    tableDifficulty === 'normal' ? 'bg-sky-100 text-sky-800' :
+                    tableDifficulty === 'hard' ? 'bg-amber-100 text-amber-800' :
+                    'bg-rose-100 text-rose-800'
+                  }`}>
+                    난이도: {
+                      tableDifficulty === 'easy' ? '초급 (Easy)' :
+                      tableDifficulty === 'normal' ? '중급 (Normal)' :
+                      tableDifficulty === 'hard' ? '고급 (Hard)' :
+                      '마스터 (Master)'
+                    }
+                  </span>
+                  <span className="text-sm font-bold text-gray-500">
+                    진행도: {filledCount} / {tableBlanks.length} 칸 입력완료
+                  </span>
+                </div>
+
+                {/* Live Progress Bar indicator */}
+                <div className="w-full sm:w-48 bg-gray-100 h-2.5 rounded-full overflow-hidden shrink-0">
+                  <div 
+                    className="h-full bg-sky-500 rounded-full transition-all duration-300"
+                    style={{ width: `${(filledCount / tableBlanks.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Table Form grid */}
+              <div className="overflow-x-auto rounded-2xl border border-[#E5E5E0] bg-white shadow-sm">
+                <table className="w-full min-w-[800px] text-center border-collapse text-sm sm:text-base">
+                  <thead>
+                    <tr className="bg-[#F8F8F5] border-b border-[#E5E5E0] text-[#5A5A40] font-black h-14">
+                      <th className="px-4 py-3 text-left pl-6 w-32 shrink-0">구분 (인칭 및 수)</th>
+                      <th className="px-4 py-3">주격 (~은/는)</th>
+                      <th className="px-4 py-3">소유격 (~의)</th>
+                      <th className="px-4 py-3">목적격 (~을/를)</th>
+                      <th className="px-4 py-3">소유대명사 (~의 것)</th>
+                      <th className="px-4 py-3">재귀대명사 (~ 자신)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F0F0EB]">
+                    {pronounData.map((row) => (
+                      <tr key={row.id + '_quiz'} className="hover:bg-sky-50/5 transition-colors h-20">
+                        <td className="px-4 py-3 text-left pl-6 font-extrabold text-[#5A5A40] text-xs sm:text-sm">
+                          {row.person}
+                        </td>
+                        {(['subjective', 'possessive', 'objective', 'possessivePronoun', 'reflexive'] as const).map(field => {
+                          const cellKey = `${row.id}_${field}`;
+                          const isBlank = tableBlanks.includes(cellKey);
+                          const isDashValue = field === 'possessivePronoun' && row[field] === '-';
+
+                          if (isDashValue) {
+                            return (
+                              <td key={field} className="p-1 bg-gray-50/50 text-[#8A8A80] font-bold">
+                                -
+                              </td>
+                            );
+                          }
+
+                          if (isBlank) {
+                            const userValue = tableInputs[cellKey] || '';
+                            const isCorrect = userValue.trim().toLowerCase() === row[field].trim().toLowerCase();
+
+                            return (
+                              <td key={field} className="p-1">
+                                <div className="flex flex-col items-center justify-center min-h-[56px] w-full px-1">
+                                  <input
+                                    type="text"
+                                    disabled={tableSubmitted}
+                                    value={userValue}
+                                    onChange={(e) => {
+                                      setTableInputs(prev => ({ ...prev, [cellKey]: e.target.value }));
+                                    }}
+                                    placeholder={row[`${field}Meaning`]}
+                                    autoComplete="off"
+                                    className={`w-full max-w-[110px] text-xs sm:text-sm px-2 py-2 font-extrabold text-center border-2 rounded-xl outline-none transition-all placeholder:text-[10px] placeholder:font-normal placeholder:opacity-50 ${
+                                      tableSubmitted
+                                        ? isCorrect
+                                          ? 'bg-emerald-50 border-emerald-500 text-emerald-800 shadow-inner'
+                                          : 'bg-rose-50 border-rose-400 text-rose-800 shadow-inner'
+                                        : 'border-sky-100 hover:border-sky-300 focus:border-sky-500 bg-sky-50/10 focus:bg-white text-gray-900 shadow-sm'
+                                    }`}
+                                  />
+                                  {tableSubmitted && !isCorrect && (
+                                    <span className="text-[11px] font-black text-emerald-700 mt-1 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded leading-none shadow-sm flex items-center gap-0.5">
+                                      ✔️ {row[field]}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                            );
+                          }
+
+                          // Given clue cell representation
+                          return (
+                            <td key={field} className="p-1 bg-gray-50/60 font-medium">
+                              <button
+                                onClick={() => handleCellClick(row[field])}
+                                className="w-full text-center py-2 rounded-lg hover:bg-sky-50/50 text-gray-400 group focus:outline-none flex flex-col items-center justify-center gap-0.5"
+                              >
+                                <span className="font-extrabold text-gray-600 block sm:text-base text-sm group-hover:text-sky-600 transition-colors">
+                                  {row[field]}
+                                </span>
+                                <span className="text-[10px] text-gray-400">{row[`${field}Meaning`]}</span>
+                              </button>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Submit / Score board area */}
+              <div className="pt-6 flex flex-col items-center justify-center gap-6 max-w-xl mx-auto">
+                {tableSubmitted && (
+                  <motion.div 
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="w-full bg-white p-8 rounded-3xl border-2 border-[#E5E5E0] text-center space-y-4 shadow-md"
+                  >
+                    <div className="flex justify-center items-center gap-3">
+                      <span className="text-4xl">🎉</span>
+                      <h4 className="text-2xl font-black text-[#1A1A1A]">채점 완료</h4>
+                    </div>
+                    <div className="text-5xl font-black text-sky-600">
+                      {tableScore.correct} / {tableScore.total} <span className="text-lg text-gray-400 font-bold">점</span>
+                    </div>
+                    <p className="text-gray-600 font-extrabold text-sm sm:text-base break-keep max-w-md mx-auto">
+                      {(() => {
+                        const ratio = tableScore.correct / tableScore.total;
+                        if (ratio === 1) return "완벽합니다! 대명사 격변화의 완벽한 마스터이십니다! 🏆";
+                        if (ratio >= 0.8) return "훌륭한 실력입니다! 약간만 고치면 완벽해요! 🌟";
+                        if (ratio >= 0.5) return "정말 잘 해내셨어요! 오답 표시된 셀을 복습해 보세요. 👍";
+                        return "대명사 규칙을 표를 통해 조금만 더 복습해 보세요! 다시 맞추면 쉽게 해낼 수 있어요! 💪";
+                      })()}
+                    </p>
+                  </motion.div>
+                )}
+
+                <div className="flex gap-4 w-full">
+                  {!tableSubmitted ? (
+                    <>
+                      <button
+                        onClick={() => {
+                          setTableQuizStarted(false);
+                        }}
+                        className="flex-1 bg-white border border-[#E5E5E0] py-4 rounded-2xl font-bold hover:bg-[#F8F8F5] text-gray-600 transition-all text-base shadow-sm"
+                      >
+                        퀴즈 선택화면으로
+                      </button>
+                      <button
+                        onClick={submitTableQuiz}
+                        disabled={filledCount === 0}
+                        className="flex-1 bg-[#1A1A1A] text-white py-4 rounded-2xl font-black hover:bg-black transition-all text-base disabled:opacity-30 shadow-md"
+                      >
+                        채점 및 정답확인
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          setTableQuizStarted(false);
+                        }}
+                        className="flex-1 bg-white border border-[#E5E5E0] py-4 rounded-2xl font-bold hover:bg-[#F8F8F5] text-gray-600 transition-all text-base shadow-sm"
+                      >
+                        난이도 변경
+                      </button>
+                      <button
+                        onClick={() => startTableQuiz(tableDifficulty)}
+                        className="flex-1 bg-sky-600 text-white py-4 rounded-2xl font-black hover:bg-sky-700 transition-all text-base shadow-md"
+                      >
+                        다시 도전하기
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      )}
+
+      {subTab === 'quiz' && (
+        <div className="space-y-6">
+          <QuizSection 
+            questions={pronounQuiz}
+            state={quizState} 
+            handleAnswer={(ans: any) => handleAnswer(quizId, pronounQuiz, ans)} 
+            onReset={() => {
+              resetQuiz(quizId, pronounQuiz.length);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
