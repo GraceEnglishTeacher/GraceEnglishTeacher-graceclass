@@ -10,7 +10,12 @@ import {
   XCircle,
   Menu,
   ChevronRight,
-  Volume2
+  Volume2,
+  QrCode,
+  Copy,
+  Check,
+  Tablet,
+  X
 } from 'lucide-react';
 import { worksheetData as worksheetData3 } from './data';
 import { worksheetData4 } from './data4';
@@ -25,6 +30,20 @@ type SubTab = 'learn' | 'quiz' | 'defQuiz' | 'review';
 export default function App() {
   const [currentLesson, setCurrentLesson] = useState<3 | 4>(3);
   const worksheetData = currentLesson === 3 ? worksheetData3 : worksheetData4;
+  
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState('');
+
+  useEffect(() => {
+    setCurrentUrl(window.location.href);
+  }, []);
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(currentUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const getVocabularyItemByQuizQuestion = (q: QuizQuestion): VocabularyItem | undefined => {
     if (q.type === 'multiple-choice') {
@@ -360,8 +379,19 @@ export default function App() {
             <div className="bg-[#5A5A40] text-white p-3 rounded-2xl shadow-sm">
               <BookOpen size={30} />
             </div>
-            <div>
-              <h1 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-[#1A1A1A] leading-none">{worksheetData.title}</h1>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <h1 className="font-extrabold text-2xl sm:text-3xl tracking-tight text-[#1A1A1A] leading-none">{worksheetData.title}</h1>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowQrModal(true);
+                }}
+                className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-black rounded-lg border border-amber-200 hover:border-amber-300 transition-all sm:ml-1.5 group cursor-pointer w-fit"
+                title="태블릿 접속 QR 코드 및 링크"
+              >
+                <QrCode size={13} className="group-hover:scale-110 transition-transform" />
+                <span>태블릿 접속 QR</span>
+              </button>
             </div>
           </div>
           {activeTab ? (
@@ -719,6 +749,93 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* QR Code / Share Link Popup Modal */}
+      <AnimatePresence>
+        {showQrModal && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full border border-[#E5E5E0] shadow-2xl relative space-y-6"
+            >
+              <button 
+                onClick={() => setShowQrModal(false)}
+                className="absolute top-4 right-4 text-[#8A8A80] hover:text-[#1A1A1A] p-1.5 hover:bg-[#F0F0EB] rounded-full transition-colors font-bold cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="text-center space-y-2">
+                <div className="mx-auto w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+                  <Tablet size={24} />
+                </div>
+                <h3 className="text-lg font-black text-[#1A1A1A]">공용 태블릿 간편 접속</h3>
+                <p className="text-xs text-[#8A8A80] leading-relaxed break-keep">
+                  학생들이 개인 또는 공용 태블릿 카메라로 아래 QR 코드를 스캔하면 바로 학습 페이지에 접속할 수 있습니다.
+                </p>
+              </div>
+
+              {/* QR Code Display Grid */}
+              <div className="bg-[#FAF9F5] p-6 rounded-2xl border border-[#E5E5E0] flex flex-col items-center justify-center space-y-4 shadow-inner">
+                {currentUrl ? (
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(currentUrl)}`} 
+                    alt="QR Code"
+                    className="w-44 h-44 bg-white p-2 rounded-xl border border-gray-200/80 shadow-sm"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-44 h-44 bg-white border border-gray-200/80 rounded-xl flex items-center justify-center">
+                    <span className="text-xs text-gray-400">URL 로딩 중...</span>
+                  </div>
+                )}
+                <span className="text-[10px] font-black text-[#8A8A80] uppercase tracking-wider">주소창 URL 기준 자동 생성</span>
+              </div>
+
+              {/* Share link controls */}
+              <div className="space-y-2">
+                <label className="text-xs font-black text-neutral-500 uppercase tracking-wider block">접속 전체 링크</label>
+                <div className="flex items-center gap-2 p-1.5 bg-[#FAF9F5] rounded-xl border border-[#E5E5E0] text-xs">
+                  <span className="truncate flex-1 font-mono text-neutral-600 px-2 select-all">
+                    {currentUrl || '로딩 중...'}
+                  </span>
+                  <button
+                    onClick={handleCopyLink}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 font-extrabold text-xs tracking-tight rounded-lg transition-all cursor-pointer ${
+                      copied 
+                        ? 'bg-emerald-600 text-white' 
+                        : 'bg-[#5A5A40] text-white hover:bg-[#4E4E37]'
+                    }`}
+                  >
+                    {copied ? (
+                      <>
+                        <Check size={14} />
+                        복사 완료
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={14} />
+                        링크 복사
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={() => setShowQrModal(false)}
+                  className="w-full bg-[#FAF9F5] hover:bg-[#E5E5E0] border border-[#E5E5E0] text-[#1A1A1A] font-extrabold py-3 rounded-xl transition-all text-sm cursor-pointer"
+                >
+                  닫기
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -1212,36 +1329,45 @@ function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz, workshee
           {showAnalysis ? (
             <ReadingGrammarAnalysis story={story} onSpeak={onSpeak} />
           ) : (
-            <div className="grid grid-cols-1 gap-12">
-              <div className="bg-[#F8F8F5] p-8 rounded-3xl relative border border-[#E5E5E0]">
-                <div className="absolute -top-4 left-8 bg-[#5A5A40] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
-                  English
+            <div className="grid grid-cols-1 gap-8">
+              {!showKorean ? (
+                <div className="bg-[#F8F8F5] p-8 sm:p-10 rounded-3xl relative border border-[#E5E5E0]">
+                  <div className="absolute -top-4 left-8 bg-[#5A5A40] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest leading-none">
+                    English
+                  </div>
+                  <div className="space-y-6 md:space-y-8">
+                    {story.english.split('\n\n').filter(p => p.trim() !== '').map((para, pIdx) => (
+                      <p 
+                        key={pIdx} 
+                        className="text-xl md:text-2xl leading-relaxed md:leading-loose font-bold text-neutral-600 tracking-tight font-sans text-justify"
+                        style={{ textIndent: '1.5em' }}
+                      >
+                        {para}
+                      </p>
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-1 md:space-y-2">
-                  {story.english.split('\n\n').filter(p => p.trim() !== '').map((para, pIdx) => (
-                    <p 
-                      key={pIdx} 
-                      className="text-xl md:text-2xl leading-relaxed md:leading-loose font-bold text-neutral-600 tracking-tight font-sans text-justify"
-                      style={{ textIndent: '1.5em' }}
-                    >
-                      {para}
-                    </p>
-                  ))}
-                </div>
-              </div>
-
-              {showKorean && (
+              ) : (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white p-8 rounded-3xl border border-[#E5E5E0] relative"
+                  className="bg-[#F8F8F5] p-8 sm:p-10 rounded-3xl relative border border-[#E5E5E0] space-y-6 md:space-y-8"
                 >
-                  <div className="absolute -top-4 left-8 bg-[#E5E5E0] text-[#5A5A40] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
-                    Korean
+                  <div className="absolute -top-4 left-8 bg-rose-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest leading-none">
+                    English & Korean (Sentence by Sentence)
                   </div>
-                  <p className="text-lg sm:text-xl leading-[1.8] text-[#5A5A50] whitespace-pre-line">
-                    {story.korean}
-                  </p>
+                  <div className="space-y-6 sm:space-y-8">
+                    {story.analysis.map((sentence: any, sIdx: number) => (
+                      <div key={sIdx} className="space-y-2 md:space-y-3 pb-6 border-b border-[#E5E5E0] last:border-0 last:pb-0 group transition-all">
+                        <p className="text-lg sm:text-xl md:text-2xl leading-relaxed font-bold text-neutral-800 tracking-tight font-sans">
+                          {sentence.english}
+                        </p>
+                        <p className="text-base sm:text-lg md:text-xl leading-relaxed text-rose-700 font-bold">
+                          {sentence.korean}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </motion.div>
               )}
             </div>
