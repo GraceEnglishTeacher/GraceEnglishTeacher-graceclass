@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BookOpen, 
@@ -12,76 +12,106 @@ import {
   ChevronRight,
   Volume2
 } from 'lucide-react';
-import { worksheetData } from './data';
-import { QuizQuestion, VocabularyItem } from './types';
+import { worksheetData as worksheetData3 } from './data';
+import { worksheetData4 } from './data4';
+import { QuizQuestion, VocabularyItem, WorksheetData } from './types';
 import { irregularVerbCategories } from './verbData';
 import { pronounData, pronounQuiz } from './pronounData';
-
-const getVocabularyItemByQuizQuestion = (q: QuizQuestion): VocabularyItem | undefined => {
-  if (q.type === 'multiple-choice') {
-    const match = q.question.match(/'([^']+)'/);
-    if (match) {
-      const matchWord = match[1];
-      return worksheetData.vocabulary.find(v => v.word === matchWord);
-    }
-  } else {
-    // Check if the answer is inside the question or if we can match any vocabulary word
-    const match = q.question.match(/'([^']+)'/);
-    if (match) {
-      const matchWord = match[1];
-      return worksheetData.vocabulary.find(v => v.word === matchWord);
-    }
-    const matchWord = String(q.answer).toLowerCase().trim();
-    const exactMatch = worksheetData.vocabulary.find(v => v.word.toLowerCase().trim() === matchWord);
-    if (exactMatch) return exactMatch;
-    
-    // Fallback: search if any vocabulary key is inside the question
-    return worksheetData.vocabulary.find(v => q.question.includes(v.word));
-  }
-  return undefined;
-};
-
-const getVocabularyByStory = (storyId: string): VocabularyItem[] => {
-  if (storyId === 'rd1') {
-    const words = [
-      "volcano", "explode", "huge", "ash", "crop", "result", "century", "wooden", "wheel", "pedal", "without", "forward", "present-day",
-      "explosion", "fail", "surprisingly", "travel", "ride", "push", "inventor"
-    ];
-    return worksheetData.vocabulary.filter(v => words.includes(v.word));
-  } else if (storyId === 'rd2') {
-    const words = [
-      "whiteout", "invent", "invention", "whole", "make a mistake", "solution", "correct", "notice", "necessity",
-      "typist", "painter", "simply", "paint over", "own"
-    ];
-    return worksheetData.vocabulary.filter(v => words.includes(v.word));
-  } else if (storyId === 'rd3') {
-    const words = [
-      "pot", "lab", "trip", "disappointing", "empty", "researcher", "set up", "network",
-      "coffee pot", "building", "software", "local", "in front of"
-    ];
-    return worksheetData.vocabulary.filter(v => words.includes(v.word));
-  } else if (storyId === 'all') {
-    return worksheetData.vocabulary;
-  }
-  return [];
-};
-
-const getVocabularyQuizByStory = (storyId: string): QuizQuestion[] => {
-  if (storyId === 'all') {
-    return worksheetData.vocabularyQuiz;
-  }
-  const storyVocab = getVocabularyByStory(storyId);
-  const storyWords = storyVocab.map(v => v.word.toLowerCase().trim());
-  return worksheetData.vocabularyQuiz.filter(q => {
-    const vocabItem = getVocabularyItemByQuizQuestion(q);
-    return vocabItem && storyWords.includes(vocabItem.word.toLowerCase().trim());
-  });
-};
+import { definitionQuizzes } from './defQuizData';
 
 type Tab = 'vocabulary' | 'listening' | 'grammar' | 'reading' | 'verbs' | 'pronouns';
-type SubTab = 'learn' | 'quiz' | 'review';
+type SubTab = 'learn' | 'quiz' | 'defQuiz' | 'review';
 
 export default function App() {
+  const [currentLesson, setCurrentLesson] = useState<3 | 4>(3);
+  const worksheetData = currentLesson === 3 ? worksheetData3 : worksheetData4;
+
+  const getVocabularyItemByQuizQuestion = (q: QuizQuestion): VocabularyItem | undefined => {
+    if (q.type === 'multiple-choice') {
+      const match = q.question.match(/'([^']+)'/);
+      if (match) {
+        const matchWord = match[1];
+        return worksheetData.vocabulary.find(v => v.word === matchWord);
+      }
+    } else {
+      // Check if the answer is inside the question or if we can match any vocabulary word
+      const match = q.question.match(/'([^']+)'/);
+      if (match) {
+        const matchWord = match[1];
+        return worksheetData.vocabulary.find(v => v.word === matchWord);
+      }
+      const matchWord = String(q.answer).toLowerCase().trim();
+      const exactMatch = worksheetData.vocabulary.find(v => v.word.toLowerCase().trim() === matchWord);
+      if (exactMatch) return exactMatch;
+      
+      // Fallback: search if any vocabulary key is inside the question
+      return worksheetData.vocabulary.find(v => q.question.includes(v.word));
+    }
+    return undefined;
+  };
+
+  const getVocabularyByStory = (storyId: string): VocabularyItem[] => {
+    if (currentLesson === 3) {
+      if (storyId === 'rd1') {
+        const words = [
+          "volcano", "explode", "huge", "ash", "crop", "result", "century", "wooden", "wheel", "pedal", "without", "forward", "present-day",
+          "explosion", "fail", "surprisingly", "travel", "ride", "push", "inventor"
+        ];
+        return worksheetData.vocabulary.filter(v => words.includes(v.word));
+      } else if (storyId === 'rd2') {
+        const words = [
+          "whiteout", "invent", "invention", "whole", "make a mistake", "solution", "correct", "notice", "necessity",
+          "typist", "painter", "simply", "paint over", "own"
+        ];
+        return worksheetData.vocabulary.filter(v => words.includes(v.word));
+      } else if (storyId === 'rd3') {
+        const words = [
+          "pot", "lab", "trip", "disappointing", "empty", "researcher", "set up", "network",
+          "coffee pot", "building", "software", "local", "in front of"
+        ];
+        return worksheetData.vocabulary.filter(v => words.includes(v.word));
+      } else if (storyId === 'all') {
+        return worksheetData.vocabulary;
+      }
+    } else {
+      // Lesson 4 story vocab maps
+      if (storyId === 'rd1') {
+        const words = [
+          "sneakers", "price", "miss", "sale", "fall for", "hunger", "marketing", "strategy",
+          "product", "limited", "hungry", "similar"
+        ];
+        return worksheetData.vocabulary.filter(v => words.includes(v.word));
+      } else if (storyId === 'rd2') {
+        const words = [
+          "hottest", "dress", "social media", "wear", "dress", "because", "again and again", "viral",
+          "spread", "quickly", "widely", "virus", "popular", "naturally", "remember", "always"
+        ];
+        return worksheetData.vocabulary.filter(v => words.includes(v.word));
+      } else if (storyId === 'rd3') {
+        const words = [
+          "expensive", "lipstick", "budget", "sound", "cheap", "first", "anchoring", "effect",
+          "anchor", "influences", "decision", "rely on", "given"
+        ];
+        return worksheetData.vocabulary.filter(v => words.includes(v.word));
+      } else if (storyId === 'all') {
+        return worksheetData.vocabulary;
+      }
+    }
+    return [];
+  };
+
+  const getVocabularyQuizByStory = (storyId: string): QuizQuestion[] => {
+    if (storyId === 'all') {
+      return worksheetData.vocabularyQuiz;
+    }
+    const storyVocab = getVocabularyByStory(storyId);
+    const storyWords = storyVocab.map(v => v.word.toLowerCase().trim());
+    return worksheetData.vocabularyQuiz.filter(q => {
+      const vocabItem = getVocabularyItemByQuizQuestion(q);
+      return vocabItem && storyWords.includes(vocabItem.word.toLowerCase().trim());
+    });
+  };
+
   const [activeTab, setActiveTab] = useState<Tab | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<SubTab>('learn');
   const [missedWords, setMissedWords] = useState<VocabularyItem[]>([]);
@@ -179,6 +209,41 @@ export default function App() {
       feedback: null
     }
   });
+
+  useEffect(() => {
+    setQuizStates({
+      vocabulary: {
+        currentQuestionIndex: 0,
+        score: 0,
+        isFinished: false,
+        userAnswers: Array(worksheetData.vocabularyQuiz.length).fill(null),
+        feedback: null
+      },
+      grammar0: {
+        currentQuestionIndex: 0,
+        score: 0,
+        isFinished: false,
+        userAnswers: Array(worksheetData.grammar[0].exercises.length).fill(null),
+        feedback: null
+      },
+      grammar1: {
+        currentQuestionIndex: 0,
+        score: 0,
+        isFinished: false,
+        userAnswers: Array(worksheetData.grammar[1].exercises.length).fill(null),
+        feedback: null
+      },
+      definitionQuiz: {
+        currentQuestionIndex: 0,
+        score: 0,
+        isFinished: false,
+        userAnswers: Array((definitionQuizzes[currentLesson] || []).length).fill(null),
+        feedback: null
+      }
+    });
+    setMissedWords([]);
+    setActiveVocabStoryIdx(0);
+  }, [currentLesson]);
 
   const handleAnswer = (quizId: string, questions: QuizQuestion[], answer: string | number) => {
     const state = quizStates[quizId] || {
@@ -291,13 +356,10 @@ export default function App() {
               <BookOpen size={30} />
             </div>
             <div>
-              <h1 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-[#1A1A1A] leading-none mb-1.5">{worksheetData.title}</h1>
-              <span className="text-lg sm:text-xl lg:text-2xl text-[#5A5A40] font-black tracking-wide block">
-                {worksheetData.unit}
-              </span>
+              <h1 className="font-extrabold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-[#1A1A1A] leading-none">{worksheetData.title}</h1>
             </div>
           </div>
-          {activeTab && (
+          {activeTab ? (
             <button 
               onClick={() => selectTab(null)}
               className="flex items-center gap-2.5 text-base sm:text-lg font-extrabold bg-[#F8F8F5] px-5 py-2.5 rounded-full hover:bg-[#E5E5E0] transition-colors shadow-sm"
@@ -305,6 +367,33 @@ export default function App() {
               <ArrowLeft size={20} />
               메뉴로
             </button>
+          ) : (
+            <div className="flex gap-1.5 bg-[#F0F0EB] p-1 rounded-full shadow-inner border border-[#E0E0DB]">
+              <button
+                onClick={() => {
+                  setCurrentLesson(3);
+                }}
+                className={`px-4 py-1.5 rounded-full font-black text-xs sm:text-sm lg:text-base transition-all ${
+                  currentLesson === 3 
+                    ? 'bg-[#5A5A40] text-white shadow-sm' 
+                    : 'text-[#8A8A80] hover:text-[#5A5A40]'
+                }`}
+              >
+                3단원
+              </button>
+              <button
+                onClick={() => {
+                  setCurrentLesson(4);
+                }}
+                className={`px-4 py-1.5 rounded-full font-black text-xs sm:text-sm lg:text-base transition-all ${
+                  currentLesson === 4 
+                    ? 'bg-[#5A5A40] text-white shadow-sm' 
+                    : 'text-[#8A8A80] hover:text-[#5A5A40]'
+                }`}
+              >
+                4단원
+              </button>
+            </div>
           )}
         </div>
       </header>
@@ -319,6 +408,40 @@ export default function App() {
               exit={{ opacity: 0, y: -20 }}
               className="grid grid-cols-1 md:grid-cols-2 gap-8"
             >
+              {/* Beautiful Unit Selection Banner Card */}
+              <div className="col-span-1 md:col-span-2 bg-[#FAF9F6] border border-[#E5E5E0] p-8 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
+                <div className="text-center sm:text-left">
+                  <h2 className="font-extrabold text-[#1A1A1A] text-xl sm:text-2xl mb-1.5">학습 단원 선택 (Select Unit)</h2>
+                  <p className="text-[#6A6A60] text-sm sm:text-base">공부하고 싶은 단원을 선택하세요. 핵심 어휘, 대화문, 문해력 학습지가 자동으로 변경됩니다.</p>
+                </div>
+                <div className="flex gap-1.5 bg-[#F0F0EB] p-1.5 rounded-full shadow-inner border border-[#E0E0DB] shrink-0">
+                  <button
+                    onClick={() => {
+                      setCurrentLesson(3);
+                    }}
+                    className={`px-5 py-2.5 rounded-full font-black text-sm sm:text-base transition-all ${
+                      currentLesson === 3 
+                        ? 'bg-[#5A5A40] text-white shadow-md' 
+                        : 'text-[#8A8A80] hover:text-[#5A5A40]'
+                    }`}
+                  >
+                    3단원 (Lesson 3)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCurrentLesson(4);
+                    }}
+                    className={`px-5 py-2.5 rounded-full font-black text-sm sm:text-base transition-all ${
+                      currentLesson === 4 
+                        ? 'bg-[#5A5A40] text-white shadow-md' 
+                        : 'text-[#8A8A80] hover:text-[#5A5A40]'
+                    }`}
+                  >
+                    4단원 (Lesson 4)
+                  </button>
+                </div>
+              </div>
+
               <MenuCard 
                 title="Voca Master" 
                 subtitle="Vocabulary"
@@ -330,7 +453,10 @@ export default function App() {
               <MenuCard 
                 title="Listening Master" 
                 subtitle="Listening & Speaking"
-                description="확신 여부 묻고 답하기, 정보 묻기 등 의사소통 기능을 학습하고 대화문을 듣습니다."
+                description={currentLesson === 3 
+                  ? "확신 여부 묻고 답하기, 정보 묻기 등 의사소통 기능을 학습하고 대화문을 듣습니다."
+                  : "도움 제안하기, 가격 묻기, 대안 요청 등 대화문을 듣고 의사소통 기능을 학습합니다."
+                }
                 icon={<HelpCircle className="text-blue-500" />}
                 onClick={() => selectTab('listening')}
                 color="blue"
@@ -338,7 +464,10 @@ export default function App() {
               <MenuCard 
                 title="Grammar Master" 
                 subtitle="Grammar"
-                description="수동태와 have to 용법을 정리하고 문제를 풉니다."
+                description={currentLesson === 3
+                  ? "수동태와 have to 용법을 정리하고 문제를 풉니다."
+                  : "주격 관계대명사와 접속사 if의 핵심 용법을 정리하고 격파형 퀴즈를 풉니다."
+                }
                 icon={<Info className="text-emerald-500" />}
                 onClick={() => selectTab('grammar')}
                 color="emerald"
@@ -351,14 +480,16 @@ export default function App() {
                 onClick={() => selectTab('reading')}
                 color="rose"
               />
-              <MenuCard 
-                title="Verbs Master" 
-                subtitle="Irregular Verbs"
-                description="불규칙 동사 60개의 3단 변화(원형-과거형-과거분사형)를 발음과 퀴즈로 완성합니다."
-                icon={<Languages className="text-[#8B5CF6]" />}
-                onClick={() => selectTab('verbs')}
-                color="violet"
-              />
+              {currentLesson === 3 && (
+                <MenuCard 
+                  title="Verbs Master" 
+                  subtitle="Irregular Verbs"
+                  description="불규칙 동사 60개의 3단 변화(원형-과거형-과거분사형)를 발음과 퀴즈로 완성합니다."
+                  icon={<Languages className="text-[#8B5CF6]" />}
+                  onClick={() => selectTab('verbs')}
+                  color="violet"
+                />
+              )}
               <MenuCard 
                 title="Pronoun Master" 
                 subtitle="Pronoun Declension"
@@ -450,7 +581,13 @@ export default function App() {
                     </button>
                   </div>
 
-                  <TabSwitcher active={activeSubTab} onChange={setActiveSubTab} showReview={missedWords.length > 0} hideLearn={activeSubTab === 'quiz'} />
+                  <TabSwitcher 
+                    active={activeSubTab} 
+                    onChange={setActiveSubTab} 
+                    showReview={missedWords.length > 0} 
+                    hideLearn={activeSubTab === 'quiz' || activeSubTab === 'defQuiz'} 
+                    showDefQuiz={true}
+                  />
                   
                   {activeSubTab === 'learn' ? (
                     <VocabularySection 
@@ -478,6 +615,45 @@ export default function App() {
                         />
                       );
                     })()
+                  ) : activeSubTab === 'defQuiz' ? (
+                    (() => {
+                      const quizId = 'definitionQuiz';
+                      const questions = definitionQuizzes[currentLesson] || [];
+                      const state = quizStates[quizId] || {
+                        currentQuestionIndex: 0,
+                        score: 0,
+                        isFinished: false,
+                        userAnswers: Array(questions.length).fill(null),
+                        feedback: null
+                      };
+                      const formattedQuestions: QuizQuestion[] = questions.map(q => ({
+                        id: q.id,
+                        type: 'multiple-choice',
+                        question: `Choose the word that matches the definition:\n\n"${q.definition}"`,
+                        options: q.options,
+                        answer: q.answer
+                      }));
+                      return (
+                        <div className="space-y-6">
+                          <div className="bg-[#FAF8FF] border border-[#E9D5FF] p-6 rounded-3xl flex items-center gap-4">
+                            <span className="text-3xl shrink-0">✨</span>
+                            <div>
+                              <h4 className="font-extrabold text-[#5B21B6] text-lg sm:text-xl">영영풀이 퀴즈 (English-English Definition Quiz)</h4>
+                              <p className="text-[#6D28D9] text-sm sm:text-base">
+                                영어로 서술된 단어 정의(Definition)를 읽고, 알맞은 영어 단어를 보기에서 선택해 보세요!
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <QuizSection 
+                            questions={formattedQuestions}
+                            state={state} 
+                            handleAnswer={(ans: any) => handleAnswer(quizId, formattedQuestions, ans)} 
+                            onReset={() => resetQuiz(quizId, formattedQuestions.length)}
+                          />
+                        </div>
+                      );
+                    })()
                   ) : (
                     <ReviewSection words={missedWords} />
                   )}
@@ -485,14 +661,14 @@ export default function App() {
               )}
 
               {activeTab === 'listening' && (
-                <ListeningSection onSpeak={speak} onSpeakDialog={speakDialog} />
+                <ListeningSection onSpeak={speak} onSpeakDialog={speakDialog} worksheetData={worksheetData} />
               )}
 
               {activeTab === 'grammar' && (
                 <div className="space-y-12">
                   <TabSwitcher active={activeSubTab} onChange={setActiveSubTab} />
                   {activeSubTab === 'learn' ? (
-                    <GrammarSection />
+                    <GrammarSection worksheetData={worksheetData} />
                   ) : (
                     <div className="space-y-20">
                       {worksheetData.grammar.map((g, idx) => (
@@ -517,6 +693,7 @@ export default function App() {
                   quizStates={quizStates}
                   handleAnswer={handleAnswer}
                   resetQuiz={resetQuiz}
+                  worksheetData={worksheetData}
                 />
               )}
 
@@ -899,18 +1076,21 @@ function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text
   );
 }
 
-function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: {
+function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz, worksheetData }: {
   onSpeak: (text: string) => void,
   quizStates: any,
   handleAnswer: (quizId: string, questions: QuizQuestion[], answer: string | number) => void,
-  resetQuiz: (quizId: string, length: number) => void
+  resetQuiz: (quizId: string, length: number) => void,
+  worksheetData: WorksheetData
 }) {
   const [activeStoryIdx, setActiveStoryIdx] = useState(0);
   const [showKorean, setShowKorean] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [subTab, setSubTab] = useState<'learn' | 'quiz'>('learn');
 
-  const story = worksheetData.reading[activeStoryIdx];
+  // Guard against out of bounds index if transitioning between lessons with different reading topics lengths
+  const activeIdx = activeStoryIdx >= worksheetData.reading.length ? 0 : activeStoryIdx;
+  const story = worksheetData.reading[activeIdx];
   const quizId = `reading_${story.id}`;
 
   const currentState = quizStates[quizId] || {
@@ -934,14 +1114,14 @@ function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: {
               setShowAnalysis(false); // Reset analysis tab on story change
             }}
             className={`p-6 rounded-2xl text-left border-2 transition-all flex items-center group h-28 ${
-              activeStoryIdx === idx
+              activeIdx === idx
                 ? 'border-rose-500 bg-rose-50/20 shadow-md scale-[1.01]'
                 : 'border-[#E5E5E0] bg-white hover:border-rose-200'
             }`}
           >
             <div className="flex items-center gap-4 w-full">
               <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0 ${
-                activeStoryIdx === idx ? 'bg-rose-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
+                activeIdx === idx ? 'bg-rose-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
               }`}>
                 {idx + 1}
               </span>
@@ -1123,27 +1303,35 @@ function MenuCard({ title, subtitle, description, icon, onClick, color, classNam
   );
 }
 
-function TabSwitcher({ active, onChange, showReview = false, hideLearn = false }: { active: SubTab, onChange: (t: SubTab) => void, showReview?: boolean, hideLearn?: boolean }) {
+function TabSwitcher({ active, onChange, showReview = false, hideLearn = false, showDefQuiz = false }: { active: SubTab, onChange: (t: SubTab) => void, showReview?: boolean, hideLearn?: boolean, showDefQuiz?: boolean }) {
   return (
-    <div className="flex bg-[#F8F8F5] p-1.5 rounded-2xl mb-8 w-fit mx-auto border border-[#E5E5E0]">
+    <div className="flex flex-wrap gap-1 bg-[#F8F8F5] p-1.5 rounded-2xl mb-8 w-fit mx-auto border border-[#E5E5E0] justify-center">
       {!hideLearn && (
         <button 
           onClick={() => onChange('learn')}
-          className={`px-8 py-2.5 rounded-xl font-bold text-base sm:text-lg transition-all ${active === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
+          className={`px-6 sm:px-8 py-2.5 rounded-xl font-bold text-sm sm:text-base md:text-lg transition-all ${active === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
         >
           학습하기
         </button>
       )}
       <button 
         onClick={() => onChange('quiz')}
-        className={`px-8 py-2.5 rounded-xl font-bold text-base sm:text-lg transition-all ${active === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
+        className={`px-6 sm:px-8 py-2.5 rounded-xl font-bold text-sm sm:text-base md:text-lg transition-all ${active === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
       >
         퀴즈풀기
       </button>
+      {showDefQuiz && (
+        <button 
+          onClick={() => onChange('defQuiz')}
+          className={`px-6 sm:px-8 py-2.5 rounded-xl font-bold text-sm sm:text-base md:text-lg transition-all ${active === 'defQuiz' ? 'bg-[#8B5CF6] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#8B5CF6]'}`}
+        >
+          영영풀이 퀴즈 🌟
+        </button>
+      )}
       {showReview && (
         <button 
           onClick={() => onChange('review')}
-          className={`px-8 py-2.5 rounded-xl font-bold text-base sm:text-lg transition-all ${active === 'review' ? 'bg-orange-600 text-white shadow-md' : 'text-[#8A8A80] hover:text-orange-600'}`}
+          className={`px-6 sm:px-8 py-2.5 rounded-xl font-bold text-sm sm:text-base md:text-lg transition-all ${active === 'review' ? 'bg-orange-600 text-white shadow-md' : 'text-[#8A8A80] hover:text-orange-600'}`}
         >
           오답 복습
         </button>
@@ -1274,7 +1462,11 @@ function VocabularySection({ onSpeak, words }: { onSpeak: (text: string) => void
   );
 }
 
-function ListeningSection({ onSpeak, onSpeakDialog }: { onSpeak: (text: string, speaker?: 'G' | 'B' | 'A') => void, onSpeakDialog: (text: string) => void }) {
+function ListeningSection({ onSpeak, onSpeakDialog, worksheetData }: {
+  onSpeak: (text: string, speaker?: 'G' | 'B' | 'A') => void,
+  onSpeakDialog: (text: string) => void,
+  worksheetData: WorksheetData
+}) {
   return (
     <div className="space-y-16">
       {/* Communication Functions */}
@@ -1289,7 +1481,9 @@ function ListeningSection({ onSpeak, onSpeakDialog }: { onSpeak: (text: string, 
           >
             <div className="bg-[#1A1A1A] text-white p-6 md:p-8">
               <div className="flex items-center gap-4 mb-2">
-                <span className="bg-[#5A5A40] text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest text-[#F5F5F0]">Lesson 3</span>
+                <span className="bg-[#5A5A40] text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest text-[#F5F5F0]">
+                  {worksheetData.unit.split('.')[0]}
+                </span>
                 <span className="text-sm font-bold opacity-60">의사소통 기능 {idx + 1}</span>
               </div>
               <h3 className="text-2xl md:text-3xl font-bold tracking-tight">{fn.title}</h3>
@@ -1312,22 +1506,33 @@ function ListeningSection({ onSpeak, onSpeakDialog }: { onSpeak: (text: string, 
               <div className="mt-10 bg-white p-8 rounded-3xl border-2 border-dashed border-[#E5E5E0]">
                 <div className="bg-rose-500 text-white w-fit px-4 py-1 rounded-full text-xs font-bold mb-6 italic">Example Dialogue</div>
                 <div className="space-y-6">
-                  {fn.examples.map((ex, eIdx) => (
-                    <div key={eIdx} className="flex gap-6 items-start">
-                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black shrink-0 shadow-sm ${ex.speaker === 'A' ? 'bg-[#1A1A1A] text-white' : 'bg-[#5A5A40] text-[#F5F5F0]'}`}>
-                        {ex.speaker}
+                  {fn.examples.map((ex, eIdx) => {
+                    const getSpeakerBg = (sp: string) => {
+                      switch (sp.toUpperCase()) {
+                        case 'W': return 'bg-rose-500 text-white';
+                        case 'M': return 'bg-blue-500 text-white';
+                        case 'G': return 'bg-[#1A1A1A] text-white';
+                        case 'B': return 'bg-[#5A5A40] text-[#F5F5F0]';
+                        default: return 'bg-indigo-600 text-white';
+                      }
+                    };
+                    return (
+                      <div key={eIdx} className="flex gap-6 items-start">
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black shrink-0 shadow-sm ${getSpeakerBg(ex.speaker)}`}>
+                          {ex.speaker}
+                        </div>
+                        <div className="flex items-center gap-3 group">
+                          <p className="text-2xl font-bold text-[#1A1A1A] tracking-tight">{ex.text}</p>
+                          <button 
+                            onClick={() => onSpeak(ex.text, ex.speaker as 'G' | 'B' | 'A')}
+                            className="p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-[#8A8A80] hover:text-[#5A5A40] hover:bg-[#F8F8F5]"
+                          >
+                            <Volume2 size={20} />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3 group">
-                        <p className="text-2xl font-bold text-[#1A1A1A] tracking-tight">{ex.text}</p>
-                        <button 
-                          onClick={() => onSpeak(ex.text, ex.speaker as 'G' | 'B' | 'A')}
-                          className="p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-[#8A8A80] hover:text-[#5A5A40] hover:bg-[#F8F8F5]"
-                        >
-                          <Volume2 size={20} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -1421,46 +1626,49 @@ const DialogBlock: React.FC<DialogBlockProps> = ({ dialog, onSpeakDialog }) => {
           <div className="space-y-8">
             <div className="space-y-4">
               {dialog.english.split('\n').map((line: string, lIdx: number) => {
-                const isG = line.startsWith('G:');
-                const isB = line.startsWith('B:');
-                const text = line.replace(/^[GB]:\s*/, '');
+                const match = line.match(/^([WMGB]):\s*(.*)/i);
+                const speaker = match ? match[1].toUpperCase() : null;
+                const text = match ? match[2] : line;
+                
+                const koreanLines = dialog.korean.split('\n');
+                const koreanLine = koreanLines[lIdx] || '';
+                const korText = koreanLine.replace(/^[여남]:\s*/, '');
+                
+                const getSpeakerBg = (sp: string) => {
+                  switch (sp) {
+                    case 'W': return 'bg-rose-500 text-white';
+                    case 'M': return 'bg-blue-500 text-white';
+                    case 'G': return 'bg-[#1A1A1A] text-white';
+                    case 'B': return 'bg-[#5A5A40] text-[#F5F5F0]';
+                    default: return 'bg-indigo-600 text-white';
+                  }
+                };
+
                 return (
                   <div key={lIdx} className="flex gap-4 md:gap-6 items-start">
-                    {(isG || isB) && (
-                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black shrink-0 text-sm shadow-sm ${isG ? 'bg-[#1A1A1A] text-white' : 'bg-[#5A5A40] text-[#F5F5F0]'}`}>
-                        {isG ? 'G' : 'B'}
+                    {speaker && (
+                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black shrink-0 text-sm shadow-sm ${getSpeakerBg(speaker)}`}>
+                        {speaker}
                       </div>
                     )}
-                    <p className="text-xl md:text-2xl font-bold text-[#1A1A1A] tracking-tight leading-relaxed pt-1 flex-1">
-                      {text}
-                    </p>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-xl md:text-2xl font-bold text-[#1A1A1A] tracking-tight leading-relaxed pt-1">
+                        {text}
+                      </p>
+                      {showKorean && korText && (
+                        <motion.p 
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="text-base md:text-lg font-bold text-[#6B6B60] leading-relaxed mt-1"
+                        >
+                          {korText}
+                        </motion.p>
+                      )}
+                    </div>
                   </div>
                 );
               })}
             </div>
-            
-            {showKorean && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="pt-8 border-t border-dashed border-[#E5E5E0] space-y-4"
-              >
-                {dialog.korean.split('\n').map((line: string, lIdx: number) => {
-                  const text = line.replace(/^[여남]:\s*/, '');
-                  const isGirl = line.startsWith('여:');
-                  return (
-                    <div key={lIdx} className="flex gap-4 md:gap-6 items-start">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold shrink-0 text-[10px] opacity-40 border border-[#1A1A1A]/10`}>
-                        {isGirl ? '여' : '남'}
-                      </div>
-                      <p className="text-base md:text-lg font-bold text-[#6B6B60] leading-relaxed pt-1">
-                        {text}
-                      </p>
-                    </div>
-                  );
-                })}
-              </motion.div>
-            )}
           </div>
         ) : (
           <div className="space-y-10">
@@ -1552,7 +1760,7 @@ const DialogBlock: React.FC<DialogBlockProps> = ({ dialog, onSpeakDialog }) => {
   );
 }
 
-function GrammarSection() {
+function GrammarSection({ worksheetData }: { worksheetData: WorksheetData }) {
   return (
     <div className="space-y-8">
       {worksheetData.grammar.map((item, id) => (

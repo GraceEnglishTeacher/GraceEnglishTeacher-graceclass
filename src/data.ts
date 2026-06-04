@@ -1,7 +1,7 @@
 import { WorksheetData } from './types';
 
 export const worksheetData: WorksheetData = {
-  title: "Grace's English Class",
+  title: "Grace English Class",
   unit: "Lesson 3. What a Great Idea!",
   vocabulary: [
     { word: "ash", meaning: "재, 잿더미", example: "The volcano sent ash into the air." },

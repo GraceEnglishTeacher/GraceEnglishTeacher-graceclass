@@ -1,6 +1,8 @@
 {
   "name": "2학년 열공 학습지 (2nd Grade Study Guide)",
-  "description": "중학교 2학년 학습지 내용을 바탕으로 본문, 어휘, 어법 정리 및 퀴즈 기능을 제공하는 스마트 학습 웹앱입니다.",
+  "description": "중학교 2학년 학습지 내용을 바탕으로 3단원 및 4단원에 해당하는 어휘, 본문 분석, 듣기 기능, 핵심 어법 정리 및 퀴즈 기능을 제공하는 스마트 학습 웹앱입니다.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
