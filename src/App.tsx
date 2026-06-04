@@ -75,7 +75,12 @@ export default function App() {
       }
     } else {
       // Lesson 4 story vocab maps
-      if (storyId === 'rd1') {
+      if (storyId === 'rd0') {
+        const words = [
+          "influence", "decision", "strategy", "hold on"
+        ];
+        return worksheetData.vocabulary.filter(v => words.includes(v.word));
+      } else if (storyId === 'rd1') {
         const words = [
           "sneakers", "price", "miss", "sale", "fall for", "hunger", "marketing", "strategy",
           "product", "limited", "hungry", "similar"
@@ -529,7 +534,7 @@ export default function App() {
                   </div>
 
                   {/* Story Select Cards for Vocabulary */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className={`grid grid-cols-1 sm:grid-cols-2 ${worksheetData.reading.length === 4 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-4`}>
                     {worksheetData.reading.map((item, idx) => (
                       <button
                         key={item.id}
@@ -558,17 +563,17 @@ export default function App() {
                     ))}
                     <button
                       onClick={() => {
-                        setActiveVocabStoryIdx(3);
+                        setActiveVocabStoryIdx(worksheetData.reading.length);
                       }}
                       className={`p-6 rounded-2xl text-left border-2 transition-all flex items-center group h-28 ${
-                        activeVocabStoryIdx === 3
+                        activeVocabStoryIdx === worksheetData.reading.length
                           ? 'border-amber-500 bg-amber-50/20 shadow-md scale-[1.01]'
                           : 'border-[#E5E5E0] bg-white hover:border-amber-200'
                       }`}
                     >
                       <div className="flex items-center gap-4 w-full">
                         <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0 ${
-                          activeVocabStoryIdx === 3 ? 'bg-amber-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
+                          activeVocabStoryIdx === worksheetData.reading.length ? 'bg-amber-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
                         }`}>
                           전체
                         </span>
@@ -592,11 +597,11 @@ export default function App() {
                   {activeSubTab === 'learn' ? (
                     <VocabularySection 
                       onSpeak={speak} 
-                      words={getVocabularyByStory(activeVocabStoryIdx === 3 ? 'all' : worksheetData.reading[activeVocabStoryIdx].id)} 
+                      words={getVocabularyByStory(activeVocabStoryIdx === worksheetData.reading.length ? 'all' : worksheetData.reading[activeVocabStoryIdx].id)} 
                     />
                   ) : activeSubTab === 'quiz' ? (
                     (() => {
-                      const storyId = activeVocabStoryIdx === 3 ? 'all' : worksheetData.reading[activeVocabStoryIdx].id;
+                      const storyId = activeVocabStoryIdx === worksheetData.reading.length ? 'all' : worksheetData.reading[activeVocabStoryIdx].id;
                       const quizId = `vocabulary_${storyId}`;
                       const storyQuestions = getVocabularyQuizByStory(storyId);
                       const state = quizStates[quizId] || {
@@ -689,6 +694,7 @@ export default function App() {
 
               {activeTab === 'reading' && (
                 <ReadingSection 
+                  key={currentLesson}
                   onSpeak={speak}
                   quizStates={quizStates}
                   handleAnswer={handleAnswer}
@@ -1077,6 +1083,7 @@ function ReadingGrammarAnalysis({ story, onSpeak }: { story: any, onSpeak: (text
 }
 
 function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz, worksheetData }: {
+  key?: any,
   onSpeak: (text: string) => void,
   quizStates: any,
   handleAnswer: (quizId: string, questions: QuizQuestion[], answer: string | number) => void,
@@ -1104,7 +1111,7 @@ function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz, workshee
   return (
     <div className="space-y-8">
       {/* Story Select Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${worksheetData.reading.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
         {worksheetData.reading.map((item, idx) => (
           <button
             key={item.id}
@@ -1113,21 +1120,16 @@ function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz, workshee
               setSubTab('learn');
               setShowAnalysis(false); // Reset analysis tab on story change
             }}
-            className={`p-6 rounded-2xl text-left border-2 transition-all flex items-center group h-28 ${
+            className={`p-6 rounded-2xl text-center border-2 transition-all flex items-center justify-center group h-28 ${
               activeIdx === idx
                 ? 'border-rose-500 bg-rose-50/20 shadow-md scale-[1.01]'
                 : 'border-[#E5E5E0] bg-white hover:border-rose-200'
             }`}
           >
-            <div className="flex items-center gap-4 w-full">
-              <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0 ${
-                activeIdx === idx ? 'bg-rose-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
-              }`}>
-                {idx + 1}
-              </span>
-              <div className="flex flex-col leading-tight min-w-0">
+            <div className="flex items-center justify-center w-full">
+              <div className="flex flex-col leading-tight min-w-0 text-center">
                 <span className="font-black text-xl sm:text-2xl tracking-tight text-[#1A1A1A] break-keep group-hover:text-rose-600 transition-colors">
-                  {item.title.replace(/\s+/g, '')}
+                  {item.title}
                 </span>
               </div>
             </div>
@@ -1144,7 +1146,7 @@ function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz, workshee
               subTab === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'
             }`}
           >
-            학습하기
+            Learn
           </button>
         )}
         <button 
@@ -1153,7 +1155,7 @@ function ReadingSection({ onSpeak, quizStates, handleAnswer, resetQuiz, workshee
             subTab === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'
           }`}
         >
-          퀴즈풀기
+          Quiz
         </button>
       </div>
 
@@ -1311,21 +1313,21 @@ function TabSwitcher({ active, onChange, showReview = false, hideLearn = false, 
           onClick={() => onChange('learn')}
           className={`px-6 sm:px-8 py-2.5 rounded-xl font-bold text-sm sm:text-base md:text-lg transition-all ${active === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
         >
-          학습하기
+          Learn
         </button>
       )}
       <button 
         onClick={() => onChange('quiz')}
         className={`px-6 sm:px-8 py-2.5 rounded-xl font-bold text-sm sm:text-base md:text-lg transition-all ${active === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
       >
-        퀴즈풀기
+        Quiz
       </button>
       {showDefQuiz && (
         <button 
           onClick={() => onChange('defQuiz')}
           className={`px-6 sm:px-8 py-2.5 rounded-xl font-bold text-sm sm:text-base md:text-lg transition-all ${active === 'defQuiz' ? 'bg-[#8B5CF6] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#8B5CF6]'}`}
         >
-          영영풀이 퀴즈 🌟
+          Definition Quiz 🌟
         </button>
       )}
       {showReview && (
@@ -1333,7 +1335,7 @@ function TabSwitcher({ active, onChange, showReview = false, hideLearn = false, 
           onClick={() => onChange('review')}
           className={`px-6 sm:px-8 py-2.5 rounded-xl font-bold text-sm sm:text-base md:text-lg transition-all ${active === 'review' ? 'bg-orange-600 text-white shadow-md' : 'text-[#8A8A80] hover:text-orange-600'}`}
         >
-          오답 복습
+          Review
         </button>
       )}
     </div>
@@ -2069,7 +2071,7 @@ function PronounSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: any) {
             subTab === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'
           }`}
         >
-          격변화 표 학습
+          Declension Table
         </button>
         <button
           onClick={() => { setSubTab('table-quiz'); }}
@@ -2077,7 +2079,7 @@ function PronounSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: any) {
             subTab === 'table-quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'
           }`}
         >
-          표 빈칸 채우기 퀴즈
+          Fill Blanks Quiz
         </button>
         <button
           onClick={() => { setSubTab('quiz'); }}
@@ -2085,7 +2087,7 @@ function PronounSection({ onSpeak, quizStates, handleAnswer, resetQuiz }: any) {
             subTab === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'
           }`}
         >
-          문장 활용 퀴즈
+          Sentence Quiz
         </button>
       </div>
 
@@ -2762,13 +2764,13 @@ function VerbsSection() {
           onClick={() => { setSubTab('learn'); setQuizStarted(false); }}
           className={`px-8 py-2.5 rounded-xl font-bold text-base sm:text-lg transition-all ${subTab === 'learn' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
         >
-          학습하기
+          Learn
         </button>
         <button 
           onClick={() => { setSubTab('quiz'); setQuizStarted(false); }}
           className={`px-8 py-2.5 rounded-xl font-bold text-base sm:text-lg transition-all ${subTab === 'quiz' ? 'bg-[#5A5A40] text-white shadow-md' : 'text-[#8A8A80] hover:text-[#5A5A40]'}`}
         >
-          퀴즈풀기
+          Quiz
         </button>
       </div>
 

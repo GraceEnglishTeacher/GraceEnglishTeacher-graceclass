@@ -127,11 +127,127 @@ export const worksheetData4: WorksheetData = {
   },
   reading: [
     {
+      id: "rd0",
+      title: "Be a Smart Shopper",
+      english: "Do you think you are a smart shopper?\n\nWell, you may think you are, but hold on!\n\nThere are various marketing strategies which influence your decisions. Learning about them will make you a smarter shopper.",
+      korean: "당신은 자신이 똑똑한 소비자라고 생각합나요?\n\n글쎄요, 당신은 그렇다고 생각할지도 모르지만, 잠깐만요!\n\n당신의 결정에 영향을 미치는 다양한 마케팅 전략들이 있습니다. 그것들에 대해 배우는 것은 당신을 더 똑똑한 소비자로 만들어 줄 것입니다.",
+      analysis: [
+        {
+          english: "Do you think you are a smart shopper?",
+          korean: "당신은 자신이 똑똑한 소비자라고 생각하나요?",
+          underlines: ["shopper"],
+          vocabulary: [
+            { word: "smart", pos: "형", meaning: "똑똑한, 영리한" },
+            { word: "shopper", pos: "명", meaning: "소비자, 쇼핑객" }
+          ],
+          grammar: [
+            { phrase: "Do you think...", explanation: "think와 you are 사이에 접속사 that이 생략되어 있습니다. 'you are a smart shopper'는 think의 목적어 역할을 하는 명사절입니다." }
+          ]
+        },
+        {
+          english: "Well, you may think you are, but hold on!",
+          korean: "글쎄요, 당신은 그렇다고 생각할지도 모르지만, 잠깐만요!",
+          highlights: ["may"],
+          underlines: ["hold on"],
+          vocabulary: [
+            { word: "may", pos: "조", meaning: "~일지도 모른다 (추측)" },
+            { word: "hold on", pos: "동", meaning: "잠깐만요, 기다리다" }
+          ],
+          grammar: [
+            { phrase: "think you are", explanation: "are 뒤에는 앞의 문맥에서 언급된 보어인 'a smart shopper'가 반복을 피하기 위해 생략된 형태입니다." },
+            { phrase: "but hold on", explanation: "등위접속사 but 뒤에 동사원형 hold on으로 시작하는 명령문으로, 상대방의 성급한 흐름을 일시 정지시키고 생각을 유도합니다." }
+          ]
+        },
+        {
+          english: "There are various marketing strategies which influence your decisions.",
+          korean: "당신의 결정에 영향을 미치는 다양한 마케팅 전략들이 있습니다.",
+          highlights: ["which"],
+          underlines: ["various", "influence", "decisions"],
+          vocabulary: [
+            { word: "various", pos: "형", meaning: "다양한" },
+            { word: "influence", pos: "동", meaning: "영향을 미치다" },
+            { word: "decision", pos: "명", meaning: "결정" }
+          ],
+          grammar: [
+            { phrase: "There are...", explanation: "There are 뒤에는 주어로 복수 명사구(various marketing strategies)가 옵니다." },
+            { phrase: "which influence...", explanation: "주격 관계대명사 which가 이끄는 형용사절이 선행사인 various marketing strategies를 한정 수식합니다. 선행사가 복수이므로 관계사절 내 동사도 복수형(influence)을 씁니다." }
+          ]
+        },
+        {
+          english: "Learning about them will make you a smarter shopper.",
+          korean: "그것들에 대해 배우는 것은 당신을 더 똑똑한 소비자로 만들어 줄 것입니다.",
+          underlines: ["smarter"],
+          vocabulary: [
+            { word: "learning", pos: "명", meaning: "배우는 것 (동명사)" },
+            { word: "smarter", pos: "형", meaning: "더 똑똑한 (smart의 비교급)" }
+          ],
+          grammar: [
+            { phrase: "Learning about them", explanation: "동명사구(Learning about them)가 문장 전체의 주어가 되었으며, 동명사 주어는 단수 형태로 해석합니다." },
+            { phrase: "will make you...", explanation: "5형식 문장(사역/사역 유도 목적어 보어 관계)으로, 동사(will make) + 목적어(you) + 목적격 보어(a smarter shopper) 구조로 이루어져 있습니다." }
+          ]
+        }
+      ],
+      exercises: [
+        {
+          id: "rd0_q1",
+          type: "multiple-choice",
+          question: "What are we going to learn about according to this introduction?",
+          options: ["Ways to save pocket money", "Various marketing strategies that influence decisions", "How to find cheap dress on social media", "Secrets of online traditional markets"],
+          answer: 1
+        },
+        {
+          id: "rd0_q2",
+          type: "short-answer",
+          question: "Who is the word 'them' referring to in 'Learning about them...'? (two words, plural)",
+          answer: "marketing strategies"
+        },
+        {
+          id: "rd0_q3",
+          type: "multiple-choice",
+          question: "Which of the following is true according to the passage?",
+          options: [
+            "We are always very smart shoppers and need no learning.",
+            "There are only a few traditional marketing strategies.",
+            "Learning about various marketing strategies can help you make better decisions.",
+            "Marketing strategies do not influence our shopping choices."
+          ],
+          answer: 2
+        },
+        {
+          id: "rd0_q4",
+          type: "short-answer",
+          question: "Choose and fill the blank: There are '다양한' _________ marketing strategies. (seven letters)",
+          answer: "various"
+        },
+        {
+          id: "rd0_q5",
+          type: "multiple-choice",
+          question: "Complete the blank: There are various marketing strategies _________ influence our decisions.",
+          options: ["who", "which", "what", "whose"],
+          answer: 1
+        }
+      ]
+    },
+    {
       id: "rd1",
-      title: "Hunger Marketing (헝거 마케팅)",
+      title: "Hunger Marketing",
       english: "Jihoo: What? The sale ends in two hours? If I don’t buy the sneakers now, I will have to buy them at a higher price.\n\nStop, Junho! You’re buying the sneakers just because you don’t want to miss the sale. You’re falling for a hunger marketing strategy.\n\nIf people can buy a product only for a limited time, they often feel “hungry” for it and want to buy it. About missing the sale, don’t worry, Junho. You’ll soon see a similar sale again.",
       korean: "지후: 뭐라고? 세일이 두 시간 후에 끝난다고? 지금 운동화를 사지 않으면, 더 비싼 가격에 그것들을 사야 할 거야.\n\n멈춰, 준호야! 너는 단지 세일을 놓치고 싶지 않아서 운동화를 사고 있는 거야. 너는 헝거 마케팅 전략에 속고 있어.\n\n만약 사람들이 한정된 시간 동안만 제품을 구매할 수 있다면, 그들은 종종 그 제품에 대해 '배고프다'고 느끼고 그것을 구매하고 싶어 해. 세일을 놓치는 것에 대해서는, 걱정하지 마, 준호야. 너는 곧 비슷한 세일을 다시 보게 될 거야.",
       analysis: [
+        {
+          english: "What? The sale ends in two hours?",
+          korean: "뭐라고? 세일이 두 시간 후에 끝난다고?",
+          underlines: ["ends"],
+          highlights: ["ends"],
+          vocabulary: [
+            { word: "end", pos: "동", meaning: "끝나다" },
+            { word: "two hours", pos: "명", meaning: "두 시간" }
+          ],
+          grammar: [
+            { phrase: "The sale ends...", explanation: "주어 The sale이 3인칭 단수이므로 일반동사 end 뒤에 s가 결합한 꼴인 3인칭 단수 현재형태(ends)를 취하고 있습니다." },
+            { phrase: "in two hours", explanation: "여기서 전치사 in은 시간적 경과를 의미하여 '~후에'로 해석됩니다. 즉, '두 시간 후에'라는 뜻입니다." }
+          ]
+        },
         {
           english: "If I don’t buy the sneakers now, I will have to buy them at a higher price.",
           korean: "지금 운동화를 사지 않으면, 더 비싼 가격에 그것들을 사야 할 거야.",
@@ -259,9 +375,9 @@ export const worksheetData4: WorksheetData = {
     },
     {
       id: "rd2",
-      title: "Viral Marketing (바이럴 마케팅)",
-      english: "Yuna: That’s the hottest dress on social media now. Lots of people are wearing it. I have to get that dress, too!\n\nWait, Yuna! You only want the dress because you saw it again and again on social media.\n\nIt isn’t just you. There are a lot of people who fall for a viral marketing strategy. Why? Information about a product can spread quickly and widely on the Internet, just like a “virus.” If a product becomes hot on social media, people naturally want to have it. Yuna, just remember that a popular product isn’t always right for you.",
-      korean: "유나: 저건 지금 소셜 미디어에서 가장 인기 있는 드레스야. 많은 사람들이 이것을 입고 있어. 나도 저 드레스를 사야겠어!\n\n잠깐, 유나야! 너는 그 드레스를 소셜 미디어에서 계속해서 봤기 때문에 원하는 것뿐이야.\n\n너뿐만이 아니야. 바이럴 마케팅 전략에 속는 사람들이 많이 있어. 왜냐고? 제품에 대한 정보가 인터넷에서 '바이러스'처럼 빠르고 널리 퍼질 수 있어. 만약 어떤 제품이 소셜 미디어에서 인기를 끌게 되면, 사람들은 자연스럽게 그것을 갖고 싶어 해. 유나야, 인기 있는 제품이 항상 너에게 맞는 것은 아니라는 걸 기억해.",
+      title: "Viral Marketing",
+      english: "Yuna: That’s the hottest dress on social media now. Lots of people are wearing it. I have to get that dress, too!\n\nWait, Yuna! You only want the dress because you saw it again and again on social media. It isn’t just you. There are a lot of people who fall for a viral marketing strategy. Why?\n\nInformation about a product can spread quickly and widely on the Internet, just like a “virus.” If a product becomes hot on social media, people naturally want to have it. Yuna, just remember that a popular product isn’t always right for you.",
+      korean: "유나: 저건 지금 소셜 미디어에서 가장 인기 있는 드레스야. 많은 사람들이 이것을 입고 있어. 나도 저 드레스를 사야겠어!\n\n잠깐, 유나야! 너는 그 드레스를 소셜 미디어에서 계속해서 봤기 때문에 원하는 것뿐이야. 너뿐만이 아니야. 바이럴 마케팅 전략에 속는 사람들이 많이 있어. 왜냐고?\n\n제품에 대한 정보가 인터넷에서 '바이러스'처럼 빠르고 널리 퍼질 수 있어. 만약 어떤 제품이 소셜 미디어에서 인기를 끌게 되면, 사람들은 자연스럽게 그것을 갖고 싶어 해. 유나야, 인기 있는 제품이 항상 너에게 맞는 것은 아니라는 걸 기억해.",
       analysis: [
         {
           english: "That’s the hottest dress on social media now.",
@@ -275,12 +391,23 @@ export const worksheetData4: WorksheetData = {
           ]
         },
         {
-          english: "Lots of people are wearing it. I have to get that dress, too!",
-          korean: "많은 사람들이 이것을 입고 있어. 나도 저 드레스를 사야겠어!",
-          highlights: ["have to"],
+          english: "Lots of people are wearing it.",
+          korean: "많은 사람들이 이것을 입고 있어.",
           underlines: ["Lots of"],
           vocabulary: [
-            { word: "Lots of", pos: "형", meaning: "많은(=A lot of, Many)" }
+            { word: "Lots of", pos: "형", meaning: "많은 (= A lot of, Many)" }
+          ],
+          grammar: [
+            { phrase: "are wearing", explanation: "be동사 are + 동사원형의 -ing(wearing)가 합쳐져 현재 진행형(~하고 있는 중이다)을 형성하고 있습니다." }
+          ]
+        },
+        {
+          english: "I have to get that dress, too!",
+          korean: "나도 저 드레스를 사야겠어!",
+          highlights: ["have to"],
+          vocabulary: [
+            { word: "have to", pos: "조", meaning: "~해야 한다" },
+            { word: "get", pos: "동", meaning: "(여기서는) 사다, 얻다" }
           ],
           grammar: [
             { phrase: "have to get", explanation: "의무 성격의 have to(~해야 한다)에 동사원형 get이 수반되어 '반드시 사야겠다'는 필요성을 표현합니다." }
@@ -299,8 +426,19 @@ export const worksheetData4: WorksheetData = {
           ]
         },
         {
-          english: "There are a lot of people who fall for a viral marketing strategy.",
-          korean: "바이럴 마케팅 전략에 속는 사람들이 많이 있어.",
+          english: "It isn’t just you.",
+          korean: "너뿐만이 아니야.",
+          underlines: ["just"],
+          vocabulary: [
+            { word: "just", pos: "부", meaning: "단지, 오직" }
+          ],
+          grammar: [
+            { phrase: "It isn’t just you", explanation: "직역하면 '그건 단지 너만이 아니다'이며, 즉 '너 혼자만 그런 것이 아니다' 혹은 '너뿐만이 아니다' 라는 표현입니다." }
+          ]
+        },
+        {
+          english: "There are a lot of people who fall for a viral marketing strategy. Why?",
+          korean: "바이럴 마케팅 전략에 속는 사람들이 많이 있어. 왜냐고?",
           highlights: ["who"],
           underlines: ["fall for", "viral"],
           vocabulary: [
@@ -326,10 +464,24 @@ export const worksheetData4: WorksheetData = {
           ]
         },
         {
+          english: "If a product becomes hot on social media, people naturally want to have it.",
+          korean: "만약 어떤 제품이 소셜 미디어에서 인기를 끌게 되면, 사람들은 자연스럽게 그것을 갖고 싶어 해.",
+          underlines: ["naturally"],
+          connectors: ["If"],
+          vocabulary: [
+            { word: "naturally", pos: "부", meaning: "자연스럽게" },
+            { word: "become hot", pos: "동", meaning: "인기를 끌게 되다" }
+          ],
+          grammar: [
+            { phrase: "If a product becomes...", explanation: "조건을 나타내는 부사절 if가 이끄는 절에서는 미래의 일이라도 미래 시제가 아닌 현재 시제(becomes)를 사용해야 합니다." },
+            { phrase: "people naturally want to have it", explanation: "부사 naturally(자연스럽게)가 동사 want를 수식하고, want는 to 부정사(to have)를 목적어로 취하는 동사입니다." }
+          ]
+        },
+        {
           english: "Yuna, just remember that a popular product isn’t always right for you.",
           korean: "유나야, 인기 있는 제품이 항상 너에게 맞는 것은 아니라는 걸 기억해.",
           highlights: ["that"],
-          underlines: ["naturally", "remember", "popular"],
+          underlines: ["remember", "popular"],
           vocabulary: [
             { word: "popular", pos: "형", meaning: "인기 있는" },
             { word: "remember", pos: "동", meaning: "기억하다" }
@@ -393,9 +545,9 @@ export const worksheetData4: WorksheetData = {
     },
     {
       id: "rd3",
-      title: "Anchoring Effect (앵커링 효과)",
-      english: "Somi: I’m looking for a lipstick for my mom.\n\nSalesperson: How about this?\n\nSomi: Expensive! I thought I could buy a lipstick for 30 dollars.\n\nSalesperson: This is also popular.\n\nSomi: That’s better!\n\nHold on, Somi! Your budget was 30 dollars, but you are buying a 40-dollar lipstick. The 40-dollar lipstick sounds cheap only because the salesperson showed you a 50-dollar lipstick first. This is an example of the anchoring effect. Usually, the first piece of information becomes an “anchor” and influences the shopper’s decision. In your case, the 50-dollar lipstick was the anchor. Somi, don’t just rely on the first piece of information that is given to you.",
-      korean: "소미: 저는 엄마를 위한 립스틱을 찾고 있어요.\n\n판매원: 이건 어때요?\n\n소미: 비싸네요! 저는 립스틱을 30달러에 살 수 있을 줄 알았어요.\n\n판매원: 이것도 인기가 많아요.\n\n소미: 그게 더 좋네요!\n\n잠깐, 소미야! 너의 예산은 30달러지만, 너는 40달러짜리 립스틱을 사고 있어. 판매원이 50달러짜리 립스틱을 먼저 보여 줬기 때문에 40달러짜리 립스틱이 저렴하게 들리는 거야. 이건 앵커링 효과의 예시야. 보통, 첫 번째 정보가 '닻(기준점)'이 되고 쇼핑객의 결정에 영향을 미쳐. 너의 경우에는, 50달러짜리 립스틱이 닻이었어. 소미야, 너에게 주어진 첫 번째 정보에만 의존하지 마.",
+      title: "Anchoring Effect",
+      english: "Somi: I’m looking for a lipstick for my mom.\n\nSalesperson: How about this?\n\nSomi: Expensive! I thought I could buy a lipstick for 30 dollars.\n\nSalesperson: This is also popular.\n\nSomi: That’s better!\n\nHold on, Somi! Your budget was 30 dollars, but you are buying a 40-dollar lipstick. The 40-dollar lipstick sounds cheap only because the salesperson showed you a 50-dollar lipstick first. This is an example of the anchoring effect.\n\nUsually, the first piece of information becomes an “anchor” and influences the shopper’s decision. In your case, the 50-dollar lipstick was the anchor. Somi, don’t just rely on the first piece of information that is given to you.",
+      korean: "소미: 저는 엄마를 위한 립스틱을 찾고 있어요.\n\n판매원: 이건 어때요?\n\n소미: 비싸네요! 저는 립스틱을 30달러에 살 수 있을 줄 알았어요.\n\n판매원: 이것도 인기가 많아요.\n\n소미: 그게 더 좋네요!\n\n잠깐, 소미야! 너의 예산은 30달러지만, 너는 40달러짜리 립스틱을 사고 있어. 판매원이 50달러짜리 립스틱을 먼저 보여 줬기 때문에 40달러짜리 립스틱이 저렴하게 들리는 거야. 이건 앵커링 효과의 예시야.\n\n보통, 첫 번째 정보가 '닻(기준점)'이 되고 쇼핑객의 결정에 영향을 미쳐. 너의 경우에는, 50달러짜리 립스틱이 닻이었어. 소미야, 너에게 주어진 첫 번째 정보에만 의존하지 마.",
       analysis: [
         {
           english: "Somi: I’m looking for a lipstick for my mom.",
@@ -406,7 +558,18 @@ export const worksheetData4: WorksheetData = {
             { word: "lipstick", pos: "명", meaning: "립스틱" }
           ],
           grammar: [
-            { phrase: "looking for", explanation: "현재진행형(be+ing) 시제로, 지금 립스틱을 열심히 수소문하여 구하고 있다는 상태를 묘사합니다." }
+            { phrase: "looking for", explanation: "현재진행형(be+ing) 시제로, 지금 립스틱을 열심히 구하고 있다는 것을 나타냅니다." }
+          ]
+        },
+        {
+          english: "Salesperson: How about this?",
+          korean: "판매원: 이건 어때요?",
+          underlines: ["How about"],
+          vocabulary: [
+            { word: "How about", pos: "표현", meaning: "~은 어때?" }
+          ],
+          grammar: [
+            { phrase: "How about...?", explanation: "상대방에 새로운 대안을 제안하거나 의견을 물어볼 때 자주 사용되는 전형적인 권유 및 대안 제시 구문입니다." }
           ]
         },
         {
@@ -418,6 +581,39 @@ export const worksheetData4: WorksheetData = {
           ],
           grammar: [
             { phrase: "I thought [that] I could...", explanation: "thought와 주어 사이의 접속사 that이 생략된 꼴이며, 주절과 종속절의 시제를 일치시키기 위해 can의 과거형인 could가 쓰였습니다." }
+          ]
+        },
+        {
+          english: "Salesperson: This is also popular.",
+          korean: "판매원: 이것도 인기가 많아요.",
+          underlines: ["popular"],
+          vocabulary: [
+            { word: "popular", pos: "형", meaning: "인기 있는" }
+          ],
+          grammar: [
+            { phrase: "This is also popular", explanation: "부사 also(또한, 역시)는 be동사 뒤, 일반동사 앞 혹은 조동사 뒤에 자리하는 기본 위치 규칙을 충실히 따르고 있습니다." }
+          ]
+        },
+        {
+          english: "Somi: That’s better!",
+          korean: "소미: 그게 더 좋네요!",
+          underlines: ["better"],
+          vocabulary: [
+            { word: "better", pos: "형", meaning: "더 나은 (good의 비교급)" }
+          ],
+          grammar: [
+            { phrase: "That’s better", explanation: "good의 비교급 형용사인 better가 주격 보어 자리에 와서 '이전보다 훨씬 더 흡족하고 양호하다'는 의미를 전달합니다." }
+          ]
+        },
+        {
+          english: "Hold on, Somi!",
+          korean: "잠깐, 소미야!",
+          underlines: ["Hold on"],
+          vocabulary: [
+            { word: "Hold on", pos: "동", meaning: "잠깐, 기다려" }
+          ],
+          grammar: [
+            { phrase: "Hold on", explanation: "상대방의 충동적인 행동이나 흘러가는 상황을 잠시 몀추고 생각해보게 환기시키는 일상 구어체 명령문 표현입니다." }
           ]
         },
         {
@@ -447,6 +643,18 @@ export const worksheetData4: WorksheetData = {
           ]
         },
         {
+          english: "This is an example of the anchoring effect.",
+          korean: "이건 앵커링 효과의 예시야.",
+          underlines: ["example", "anchoring effect"],
+          vocabulary: [
+            { word: "example", pos: "명", meaning: "예시" },
+            { word: "anchoring effect", pos: "명", meaning: "앵커링 효과" }
+          ],
+          grammar: [
+            { phrase: "example of...", explanation: "'전치사 of + 명사(구)'가 앞의 명사인 example을 한정 수식하여 '~에 대한 대표적인 예시'라는 명사구를 형성합니다." }
+          ]
+        },
+        {
           english: "Usually, the first piece of information becomes an “anchor” and influences the shopper’s decision.",
           korean: "보통, 첫 번째 정보가 ‘닻(기준점)’이 되고 쇼핑객의 결정에 영향을 미쳐.",
           underlines: ["usually", "anchor", "influences", "decision"],
@@ -459,6 +667,17 @@ export const worksheetData4: WorksheetData = {
           ],
           grammar: [
             { phrase: "first piece of information", explanation: "셀 수 없는 명사인 information을 세어주기 위해 단위 표현인 piece of를 적용했습니다." }
+          ]
+        },
+        {
+          english: "In your case, the 50-dollar lipstick was the anchor.",
+          korean: "너의 경우에는, 50달러짜리 립스틱이 닻이었어.",
+          underlines: ["case", "anchor"],
+          vocabulary: [
+            { word: "case", pos: "명", meaning: "경우, 사례" }
+          ],
+          grammar: [
+            { phrase: "In your case", explanation: "전치사구로 문두에 와서 '너의 개별적인 구체적 조건/사례 하에'라는 상황적 한정 영역을 제공합니다." }
           ]
         },
         {
