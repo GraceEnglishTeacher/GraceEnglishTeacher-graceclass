@@ -258,7 +258,7 @@ export const worksheetData4: WorksheetData = {
             { word: "higher price", pos: "명", meaning: "더 비싼 가격" }
           ],
           grammar: [
-            { phrase: "If I don't buy...", explanation: "조건을 나타내는 부사절 접속사 if 구문입니다. 미래의 일(사지 않는 것)을 나타낼 때도 현재시제(don’t buy)를 사용합니다." },
+            { phrase: "If I don't buy...", explanation: "조건을 나타내는 부사절 접속사 if 구문입니다. 미래의 일\n(사지 않는 것)을 나타낼 때도 현재시제(don’t buy)를 사용합니다." },
             { phrase: "will have to buy", explanation: "미래 시제 조동사 will과 '해야 한다'의 have to가 결합하여 '~해야 할 것이다'를 나타냅니다." }
           ]
         },
@@ -761,9 +761,9 @@ export const worksheetData4: WorksheetData = {
     },
     {
       title: "접속사 if (Conjunction 'if')",
-      explanation: "-조건의 의미를 갖는 부사절을 이끌며, 해석은 '만약 ~라면/한다면'으로 수행합니다.\n- 시간이나 조건의 부사절에서는 미래 시제 대신 *현재 시제*를 사용해야 합니다.",
+      explanation: "-조건의 의미를 갖는 부사절을 이끌며, 해석은 '만약 ~라면/한다면'으로 해석합니다.",
       examples: [
-        "If I don’t buy the sneakers now, I will buy them at a higher price. (사지 않는다면: 미래 성격이지만 don't buy 현재 적용)",
+        "If I don’t buy the sneakers now, I will buy them at a higher price.\n(사지 않는다면: 미래 성격이지만 don't buy 현재 적용)",
         "If it rains tomorrow, we will stay home.",
         "If you study harder, you will pass the test.",
         "You can eat this sandwich if you are hungry."

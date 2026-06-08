@@ -36,7 +36,7 @@ export default function App() {
   const [currentUrl, setCurrentUrl] = useState('');
 
   useEffect(() => {
-    setCurrentUrl(window.location.href);
+    setCurrentUrl('https://2026-1-2nd-unit3-4.yeshua80.workers.dev/');
   }, []);
 
   const handleCopyLink = () => {
@@ -571,20 +571,22 @@ export default function App() {
                         onClick={() => {
                           setActiveVocabStoryIdx(idx);
                         }}
-                        className={`p-6 rounded-2xl text-left border-2 transition-all flex items-center group h-28 ${
+                        className={`p-4 rounded-2xl text-center border-2 transition-all flex items-center justify-center group h-28 ${
                           activeVocabStoryIdx === idx
                             ? 'border-amber-500 bg-amber-50/20 shadow-md scale-[1.01]'
                             : 'border-[#E5E5E0] bg-white hover:border-amber-200'
                         }`}
                       >
-                        <div className="flex items-center gap-4 w-full">
-                          <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0 ${
-                            activeVocabStoryIdx === idx ? 'bg-amber-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
-                          }`}>
-                            {idx + 1}
-                          </span>
-                          <div className="flex flex-col leading-tight min-w-0">
-                            <span className="font-black text-xl sm:text-2xl tracking-tight text-[#1A1A1A] break-keep group-hover:text-amber-600 transition-colors">
+                        <div className="flex flex-col items-center justify-center w-full min-w-0">
+                          {currentLesson !== 4 && (
+                            <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 mb-1.5 ${
+                              activeVocabStoryIdx === idx ? 'bg-amber-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
+                            }`}>
+                              {idx + 1}
+                            </span>
+                          )}
+                          <div className="text-center min-w-0 w-full px-1">
+                            <span className="font-extrabold text-base sm:text-lg lg:text-xl tracking-tight text-[#1A1A1A] break-words group-hover:text-amber-600 transition-colors block leading-tight">
                               {item.title.replace(/\([^)]*\)/g, '').trim()}
                             </span>
                           </div>
@@ -595,20 +597,22 @@ export default function App() {
                       onClick={() => {
                         setActiveVocabStoryIdx(worksheetData.reading.length);
                       }}
-                      className={`p-6 rounded-2xl text-left border-2 transition-all flex items-center group h-28 ${
+                      className={`p-4 rounded-2xl text-center border-2 transition-all flex items-center justify-center group h-28 ${
                         activeVocabStoryIdx === worksheetData.reading.length
                           ? 'border-amber-500 bg-amber-50/20 shadow-md scale-[1.01]'
                           : 'border-[#E5E5E0] bg-white hover:border-amber-200'
                       }`}
                     >
-                      <div className="flex items-center gap-4 w-full">
-                        <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shrink-0 ${
-                          activeVocabStoryIdx === worksheetData.reading.length ? 'bg-amber-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
-                        }`}>
-                          전체
-                        </span>
-                        <div className="flex flex-col leading-tight min-w-0">
-                          <span className="font-black text-xl sm:text-2xl tracking-tight text-[#1A1A1A] break-keep group-hover:text-amber-600 transition-colors">
+                      <div className="flex flex-col items-center justify-center w-full min-w-0">
+                        {currentLesson !== 4 && (
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 mb-1.5 ${
+                            activeVocabStoryIdx === worksheetData.reading.length ? 'bg-amber-500 text-white' : 'bg-[#F0F0EB] text-[#8A8A80]'
+                          }`}>
+                            전체
+                          </span>
+                        )}
+                        <div className="text-center min-w-0 w-full px-1">
+                          <span className="font-extrabold text-base sm:text-lg lg:text-xl tracking-tight text-[#1A1A1A] break-words group-hover:text-amber-600 transition-colors block leading-tight">
                             전체 어휘
                           </span>
                         </div>
@@ -1911,7 +1915,7 @@ function GrammarSection({ worksheetData }: { worksheetData: WorksheetData }) {
               {item.examples.map((ex, idx) => (
                 <div key={idx} className="flex gap-4 items-start">
                   <div className="mt-2.5 w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 shadow-sm shadow-emerald-200" />
-                  <p className="text-2xl font-bold text-[#1A1A1A] tracking-tight">{ex}</p>
+                  <p className="text-2xl font-bold text-[#1A1A1A] tracking-tight whitespace-pre-line">{ex}</p>
                 </div>
               ))}
             </div>
