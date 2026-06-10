@@ -15,7 +15,8 @@ import {
   Copy,
   Check,
   Tablet,
-  X
+  X,
+  Download
 } from 'lucide-react';
 import { worksheetData as worksheetData3 } from './data';
 import { worksheetData4 } from './data4';
@@ -827,7 +828,6 @@ export default function App() {
                   </button>
                 </div>
               </div>
-
               <div className="pt-2">
                 <button
                   onClick={() => setShowQrModal(false)}
